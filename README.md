@@ -1,7 +1,7 @@
 RPG Core integration/staging tree
 =====================================
 
-https://rpgcoin.org
+https://rpgcoin.gg
 
 What is RPGcoin?
 ----------------
