@@ -1,0 +1,33 @@
+# /etc/conf.d/rpgd: config file for /etc/init.d/rpgd
+
+# Config file location
+#RPGD_CONFIGFILE="/etc/rpg/rpg.conf"
+
+# What directory to write pidfile to?  (created and owned by $RPGD_USER)
+#RPGD_PIDDIR="/var/run/rpgd"
+
+# What filename to give the pidfile
+#RPGD_PIDFILE="${RPGD_PIDDIR}/rpgd.pid"
+
+# Where to write rpgd data (be mindful that the blockchain is large)
+#RPGD_DATADIR="/var/lib/rpgd"
+
+# User and group to own rpgd process
+#RPGD_USER="rpg"
+#RPGD_GROUP="rpg"
+
+# Path to rpgd executable
+#RPGD_BIN="/usr/bin/rpgd"
+
+# Nice value to run rpgd under
+#RPGD_NICE=0
+
+# Additional options (avoid -conf and -datadir, use flags above)
+#RPGD_OPTS=""
+
+# The timeout in seconds OpenRC will wait for rpgd to terminate
+# after a SIGTERM has been raised.
+# Note that this will be mapped as argument to start-stop-daemon's
+# '--retry' option, which means you can specify a retry schedule
+# here. For more information see man 8 start-stop-daemon.
+RPGD_SIGTERM_TIMEOUT=60

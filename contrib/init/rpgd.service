@@ -1,0 +1,22 @@
+[Unit]
+Description=RPG's distributed currency daemon
+After=network.target
+
+[Service]
+User=rpg
+Group=rpg
+
+Type=forking
+PIDFile=/var/lib/rpgd/rpgd.pid
+ExecStart=/usr/bin/rpgd -daemon -pid=/var/lib/rpgd/rpgd.pid \
+-conf=/etc/rpg/rpg.conf -datadir=/var/lib/rpgd -disablewallet
+
+Restart=always
+PrivateTmp=true
+TimeoutStopSec=60s
+TimeoutStartSec=2s
+StartLimitInterval=120s
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target

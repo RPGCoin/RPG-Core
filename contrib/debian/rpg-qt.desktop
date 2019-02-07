@@ -1,0 +1,13 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=RPG Core
+Comment=Connect to the RPG P2P Network
+Comment[de]=Verbinde mit dem RPG peer-to-peer Netzwerk
+Comment[fr]=RPG, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=RPG, eşten eşe kriptografik sanal para birimi
+Exec=rpg-qt %u
+Terminal=false
+Type=Application
+Icon=rpg128
+MimeType=x-scheme-handler/rpg;
+Categories=Office;Finance;

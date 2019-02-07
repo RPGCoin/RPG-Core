@@ -1,0 +1,6 @@
+usr/local/bin/rpg-qt usr/bin
+share/pixmaps/rpg32.xpm usr/share/pixmaps
+share/pixmaps/rpg16.xpm usr/share/pixmaps
+share/pixmaps/rpg128.png usr/share/pixmaps
+debian/rpg-qt.desktop usr/share/applications
+debian/rpg-qt.protocol usr/share/kde4/services/

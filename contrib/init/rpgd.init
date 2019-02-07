@@ -1,0 +1,67 @@
+#!/bin/bash
+#
+#  rpgd The rpg core server.
+#
+#
+# chkconfig: 345 80 20
+# description: rpgd
+# processname: rpgd
+#
+
+# Source function library.
+. /etc/init.d/functions
+
+# you can override defaults in /etc/sysconfig/rpgd, see below
+if [ -f /etc/sysconfig/rpgd ]; then
+        . /etc/sysconfig/rpgd
+fi
+
+RETVAL=0
+
+prog=rpgd
+# you can override the lockfile via RPGD_LOCKFILE in /etc/sysconfig/rpgd
+lockfile=${RPGD_LOCKFILE-/var/lock/subsys/rpgd}
+
+# rpgd defaults to /usr/bin/rpgd, override with RPGD_BIN
+rpgd=${RPGD_BIN-/usr/bin/rpgd}
+
+# rpgd opts default to -disablewallet, override with RPGD_OPTS
+rpgd_opts=${RPGD_OPTS--disablewallet}
+
+start() {
+    echo -n $"Starting $prog: "
+    daemon $DAEMONOPTS $rpgd $rpgd_opts
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch $lockfile
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc $prog
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile
+    return $RETVAL
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status $prog
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: service $prog {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
