@@ -9,6 +9,7 @@
 #include "ui_reissueassetdialog.h"
 #include "platformstyle.h"
 #include "walletmodel.h"
+#include "assettablemodel.h"
 #include "addresstablemodel.h"
 #include "core_io.h"
 #include "univalue.h"
@@ -263,35 +264,47 @@ void ReissueAssetDialog::setupCoinControlFrame(const PlatformStyle *platformStyl
 
     ui->frameCoinControl->setGraphicsEffect(GUIUtil::getShadowEffect());
 
-    ui->labelCoinControlFeatures->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelCoinControlFeatures->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelCoinControlFeatures->setFont(GUIUtil::getTopLabelFont());
 
-    ui->labelCoinControlQuantityText->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelCoinControlQuantityText->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelCoinControlQuantityText->setFont(GUIUtil::getSubLabelFont());
 
-    ui->labelCoinControlAmountText->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelCoinControlAmountText->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelCoinControlAmountText->setFont(GUIUtil::getSubLabelFont());
 
-    ui->labelCoinControlFeeText->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelCoinControlFeeText->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelCoinControlFeeText->setFont(GUIUtil::getSubLabelFont());
 
-    ui->labelCoinControlAfterFeeText->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelCoinControlAfterFeeText->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelCoinControlAfterFeeText->setFont(GUIUtil::getSubLabelFont());
 
-    ui->labelCoinControlBytesText->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelCoinControlBytesText->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelCoinControlBytesText->setFont(GUIUtil::getSubLabelFont());
 
-    ui->labelCoinControlLowOutputText->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelCoinControlLowOutputText->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelCoinControlLowOutputText->setFont(GUIUtil::getSubLabelFont());
 
-    ui->labelCoinControlChangeText->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelCoinControlChangeText->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelCoinControlChangeText->setFont(GUIUtil::getSubLabelFont());
 
     // Align the other labels next to the input buttons to the text in the same height
-    ui->labelCoinControlAutomaticallySelected->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelCoinControlAutomaticallySelected->setStyleSheet(STRING_LABEL_COLOR);
 
     // Align the Custom change address checkbox
-    ui->checkBoxCoinControlChange->setStyleSheet(QString(".QCheckBox{ %1; }").arg(COLOR_LABEL_STRING));
+    ui->checkBoxCoinControlChange->setStyleSheet(QString(".QCheckBox{ %1; }").arg(STRING_LABEL_COLOR));
+
+    ui->labelCoinControlQuantity->setFont(GUIUtil::getSubLabelFont());
+    ui->labelCoinControlAmount->setFont(GUIUtil::getSubLabelFont());
+    ui->labelCoinControlFee->setFont(GUIUtil::getSubLabelFont());
+    ui->labelCoinControlAfterFee->setFont(GUIUtil::getSubLabelFont());
+    ui->labelCoinControlBytes->setFont(GUIUtil::getSubLabelFont());
+    ui->labelCoinControlLowOutput->setFont(GUIUtil::getSubLabelFont());
+    ui->labelCoinControlChange->setFont(GUIUtil::getSubLabelFont());
+    ui->checkBoxCoinControlChange->setFont(GUIUtil::getSubLabelFont());
+    ui->lineEditCoinControlChange->setFont(GUIUtil::getSubLabelFont());
+    ui->labelCoinControlInsuffFunds->setFont(GUIUtil::getSubLabelFont());
+    ui->labelCoinControlAutomaticallySelected->setFont(GUIUtil::getSubLabelFont());
 
 }
 
@@ -301,21 +314,21 @@ void ReissueAssetDialog::setupAssetDataView(const PlatformStyle *platformStyle)
     ui->frame->setStyleSheet(QString(".QFrame {background-color: %1; padding-top: 10px; padding-right: 5px; border: none;}").arg(platformStyle->WidgetBackGroundColor().name()));
     ui->frame->setGraphicsEffect(GUIUtil::getShadowEffect());
 
-    ui->assetNameLabel->setStyleSheet(COLOR_LABEL_STRING);
+    ui->assetNameLabel->setStyleSheet(STRING_LABEL_COLOR);
     ui->assetNameLabel->setFont(GUIUtil::getSubLabelFont());
 
-    ui->addressLabel->setStyleSheet(COLOR_LABEL_STRING);
+    ui->addressLabel->setStyleSheet(STRING_LABEL_COLOR);
     ui->addressLabel->setFont(GUIUtil::getSubLabelFont());
 
-    ui->quantityLabel->setStyleSheet(COLOR_LABEL_STRING);
+    ui->quantityLabel->setStyleSheet(STRING_LABEL_COLOR);
     ui->quantityLabel->setFont(GUIUtil::getSubLabelFont());
 
-    ui->unitLabel->setStyleSheet(COLOR_LABEL_STRING);
+    ui->unitLabel->setStyleSheet(STRING_LABEL_COLOR);
     ui->unitLabel->setFont(GUIUtil::getSubLabelFont());
 
-    ui->reissuableBox->setStyleSheet(QString(".QCheckBox{ %1; }").arg(COLOR_LABEL_STRING));
+    ui->reissuableBox->setStyleSheet(QString(".QCheckBox{ %1; }").arg(STRING_LABEL_COLOR));
 
-    ui->ipfsBox->setStyleSheet(QString(".QCheckBox{ %1; }").arg(COLOR_LABEL_STRING));
+    ui->ipfsBox->setStyleSheet(QString(".QCheckBox{ %1; }").arg(STRING_LABEL_COLOR));
 
     ui->frame_3->setStyleSheet(QString(".QFrame {background-color: %1; padding-top: 10px; padding-right: 5px; border: none;}").arg(platformStyle->WidgetBackGroundColor().name()));
     ui->frame_3->setGraphicsEffect(GUIUtil::getShadowEffect());
@@ -323,10 +336,10 @@ void ReissueAssetDialog::setupAssetDataView(const PlatformStyle *platformStyle)
     ui->frame_2->setStyleSheet(QString(".QFrame {background-color: %1; padding-top: 10px; padding-right: 5px; border: none;}").arg(platformStyle->WidgetBackGroundColor().name()));
     ui->frame_2->setGraphicsEffect(GUIUtil::getShadowEffect());
 
-    ui->currentDataLabel->setStyleSheet(COLOR_LABEL_STRING);
+    ui->currentDataLabel->setStyleSheet(STRING_LABEL_COLOR);
     ui->currentDataLabel->setFont(GUIUtil::getTopLabelFont());
 
-    ui->reissueAssetDataLabel->setStyleSheet(COLOR_LABEL_STRING);
+    ui->reissueAssetDataLabel->setStyleSheet(STRING_LABEL_COLOR);
     ui->reissueAssetDataLabel->setFont(GUIUtil::getTopLabelFont());
 
 }
@@ -339,14 +352,32 @@ void ReissueAssetDialog::setupFeeControl(const PlatformStyle *platformStyle)
 
     ui->frameFee->setGraphicsEffect(GUIUtil::getShadowEffect());
 
-    ui->labelFeeHeadline->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelFeeHeadline->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelFeeHeadline->setFont(GUIUtil::getSubLabelFont());
 
-    ui->labelSmartFee3->setStyleSheet(COLOR_LABEL_STRING);
-    ui->labelCustomPerKilobyte->setStyleSheet(QString(".QLabel{ %1; }").arg(COLOR_LABEL_STRING));
-    ui->radioSmartFee->setStyleSheet(COLOR_LABEL_STRING);
-    ui->radioCustomFee->setStyleSheet(COLOR_LABEL_STRING);
-    ui->checkBoxMinimumFee->setStyleSheet(QString(".QCheckBox{ %1; }").arg(COLOR_LABEL_STRING));
+    ui->labelSmartFee3->setStyleSheet(STRING_LABEL_COLOR);
+    ui->labelCustomPerKilobyte->setStyleSheet(QString(".QLabel{ %1; }").arg(STRING_LABEL_COLOR));
+    ui->radioSmartFee->setStyleSheet(STRING_LABEL_COLOR);
+    ui->radioCustomFee->setStyleSheet(STRING_LABEL_COLOR);
+    ui->checkBoxMinimumFee->setStyleSheet(QString(".QCheckBox{ %1; }").arg(STRING_LABEL_COLOR));
+
+    ui->buttonChooseFee->setFont(GUIUtil::getSubLabelFont());
+    ui->fallbackFeeWarningLabel->setFont(GUIUtil::getSubLabelFont());
+    ui->buttonMinimizeFee->setFont(GUIUtil::getSubLabelFont());
+    ui->radioSmartFee->setFont(GUIUtil::getSubLabelFont());
+    ui->labelSmartFee2->setFont(GUIUtil::getSubLabelFont());
+    ui->labelSmartFee3->setFont(GUIUtil::getSubLabelFont());
+    ui->confTargetSelector->setFont(GUIUtil::getSubLabelFont());
+    ui->radioCustomFee->setFont(GUIUtil::getSubLabelFont());
+    ui->labelCustomPerKilobyte->setFont(GUIUtil::getSubLabelFont());
+    ui->customFee->setFont(GUIUtil::getSubLabelFont());
+    ui->labelMinFeeWarning->setFont(GUIUtil::getSubLabelFont());
+    ui->optInRBF->setFont(GUIUtil::getSubLabelFont());
+    ui->reissueAssetButton->setFont(GUIUtil::getSubLabelFont());
+    ui->clearButton->setFont(GUIUtil::getSubLabelFont());
+    ui->labelSmartFee->setFont(GUIUtil::getSubLabelFont());
+    ui->labelFeeEstimation->setFont(GUIUtil::getSubLabelFont());
+    ui->labelFeeMinimized->setFont(GUIUtil::getSubLabelFont());
 
 }
 
@@ -358,6 +389,9 @@ void ReissueAssetDialog::setBalance(const CAmount& balance, const CAmount& uncon
     Q_UNUSED(watchBalance);
     Q_UNUSED(watchUnconfirmedBalance);
     Q_UNUSED(watchImmatureBalance);
+
+    ui->labelBalance->setFont(GUIUtil::getSubLabelFont());
+    ui->label->setFont(GUIUtil::getSubLabelFont());
 
     if(model && model->getOptionsModel())
     {
@@ -1145,7 +1179,7 @@ void ReissueAssetDialog::clear()
 {
     ui->comboBox->setCurrentIndex(0);
     ui->addressText->clear();
-    ui->quantitySpinBox->setValue(1);
+    ui->quantitySpinBox->setValue(0);
     ui->unitSpinBox->setMinimum(0);
     ui->unitSpinBox->setValue(0);
     onUnitChanged(0);
@@ -1163,4 +1197,18 @@ void ReissueAssetDialog::clear()
 void ReissueAssetDialog::onClearButtonClicked()
 {
     clear();
+}
+
+void ReissueAssetDialog::focusReissueAsset(const QModelIndex &index)
+{
+    clear();
+
+    QString name = index.data(AssetTableModel::AssetNameRole).toString();
+    if (IsAssetNameAnOwner(name.toStdString()))
+        name = name.left(name.size() - 1);
+
+    ui->comboBox->setCurrentIndex(ui->comboBox->findText(name));
+    onAssetSelected(ui->comboBox->currentIndex());
+
+    ui->quantitySpinBox->setFocus();
 }

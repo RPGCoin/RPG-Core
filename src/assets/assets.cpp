@@ -983,6 +983,12 @@ bool CReissueAsset::IsValid(std::string &strError, CAssetsCache& assetCache) con
         return false;
     }
 
+    if (nUnits > MAX_UNIT || nUnits < -1) {
+        strError = _("Unable to reissue asset: unit must be less than 8 and greater than -1");
+        LogPrintf("Found bad units: %u\n", nUnits);
+        return false;
+    }
+
     if (!CheckAmountWithUnits(nAmount, asset.units)) {
         strError = _("Unable to reissue asset: amount must be divisible by the smaller unit assigned to the asset");
         return false;
@@ -1000,11 +1006,6 @@ bool CReissueAsset::IsValid(std::string &strError, CAssetsCache& assetCache) con
 
     if (nAmount < 0) {
         strError = _("Unable to reissue asset: amount must be 0 or larger");
-        return false;
-    }
-
-    if (nUnits > MAX_UNIT || nUnits < -1) {
-        strError = _("Unable to reissue asset: unit must be less than 8 and greater than -1");
         return false;
     }
 
@@ -1439,6 +1440,9 @@ bool CAssetsCache::AddReissueAsset(const CReissueAsset& reissue, const std::stri
     } else {
         mapReissuedAssetData.at(reissue.strName).nAmount += reissue.nAmount;
         mapReissuedAssetData.at(reissue.strName).nReissuable = reissue.nReissuable;
+        if (reissue.nUnits != -1) {
+            mapReissuedAssetData.at(reissue.strName).units = reissue.nUnits;
+        }
         if (reissue.strIPFSHash != "") {
             mapReissuedAssetData.at(reissue.strName).nHasIPFS = 1;
             mapReissuedAssetData.at(reissue.strName).strIPFSHash = reissue.strIPFSHash;
@@ -1857,7 +1861,7 @@ bool CAssetsCache::Flush(bool fSoftCopy, bool fFlushDB)
 size_t CAssetsCache::DynamicMemoryUsage() const
 {
     // TODO make sure this is accurate
-    return memusage::DynamicUsage(mapAssetsAddresses) + memusage::DynamicUsage(mapAssetsAddressAmount) + memusage::DynamicUsage(mapMyUnspentAssets);
+    return memusage::DynamicUsage(mapAssetsAddresses) + memusage::DynamicUsage(mapAssetsAddressAmount) + memusage::DynamicUsage(mapMyUnspentAssets) + memusage::DynamicUsage(mapReissuedAssetData) ;
 }
 
 //! Get an estimated size of the cache in bytes that will be needed inorder to save to database
@@ -1874,13 +1878,26 @@ size_t CAssetsCache::GetCacheSize() const
     // CTxOut: CAmount + CScript (105 + 8 = 113 bytes)
 
     size_t size = 0;
-    size += 32 * setChangeOwnedOutPoints.size(); // COutPoint is 32 bytes
-    size += 80 * setNewOwnerAssetsToAdd.size(); // CNewAsset is max 80 bytes
-    size -= 80 * setNewOwnerAssetsToRemove.size(); // CNewAsset is max 80 bytes
-    size += (1 + 32 + 40) * vUndoAssetAmount.size(); // 8 bit CAmount, 32 byte assetName, 40 bytes address
-    size += (1 + 32 + 40) * setNewTransferAssetsToRemove.size(); // 8 bit CAmount, 32 byte assetName, 40 bytes address
-    size += (32 + 40) * setNewTransferAssetsToAdd.size();
-    size -= (32 + 40) * vSpentAssets.size();
+    size += 32 * setChangeOwnedOutPoints.size(); // COutPoint
+
+    size += (32 + 40 + 8) * vUndoAssetAmount.size(); // Asset Name, Address, CAmount
+
+    size += (40 + 40 + 32) * setNewTransferAssetsToRemove.size(); // CAssetTrasnfer, Address, COutPoint
+    size += (40 + 40 + 32) * setNewTransferAssetsToAdd.size(); // CAssetTrasnfer, Address, COutPoint
+
+    size += 72 * setNewOwnerAssetsToAdd.size(); // Asset Name, Address
+    size += 72 * setNewOwnerAssetsToRemove.size(); // Asset Name, Address
+
+    size += (32 + 40 + 8) * vSpentAssets.size(); // Asset Name, Address, CAmount
+
+    size += (80 + 40 + 32 + sizeof(int)) * setNewAssetsToAdd.size(); // CNewAsset, Address, Block hash, int
+    size += (80 + 40 + 32 + sizeof(int)) * setNewAssetsToRemove.size(); // CNewAsset, Address, Block hash, int
+
+    size += (80 + 40 + 32 + 32 + sizeof(int)) * setNewReissueToAdd.size(); // CReissueAsset, Address, COutPoint, Block hash, int
+    size += (80 + 40 + 32 + 32 + sizeof(int)) * setNewReissueToRemove.size(); // CReissueAsset, Address, COutPoint, Block hash, int
+
+    size += (32 + 113) * setPossiblyMineAdd.size(); // Asset Name, COutPoint, CTxOut
+    size += (32 + 113) * setPossiblyMineRemove.size(); // Asset Name, COutPoint, CTxOut
 
     return size;
 }
@@ -2857,7 +2874,7 @@ bool VerifyWalletHasAsset(const std::string& asset_name, std::pair<int, std::str
 }
 
 // Return true if the amount is valid with the units passed in
-bool CheckAmountWithUnits(const CAmount& nAmount, const uint8_t nUnits)
+bool CheckAmountWithUnits(const CAmount& nAmount, const int8_t nUnits)
 {
     return nAmount % int64_t(pow(10, (MAX_UNIT - nUnits))) == 0;
 }
@@ -2888,4 +2905,61 @@ void GetTxOutAssetTypes(const std::vector<CTxOut>& vout, int& issues, int& reiss
                 reissues++;
         }
     }
+}
+
+bool ParseAssetScript(CScript scriptPubKey, uint160 &hashBytes, std::string &assetName, CAmount &assetAmount) {
+    int nType;
+    bool fIsOwner;
+    int _nStartingPoint;
+    std::string _strAddress;
+    bool isAsset = false;
+    if (scriptPubKey.IsAssetScript(nType, fIsOwner, _nStartingPoint)) {
+        if (nType == TX_NEW_ASSET) {
+            if (fIsOwner) {
+                if (OwnerAssetFromScript(scriptPubKey, assetName, _strAddress)) {
+                    assetAmount = OWNER_ASSET_AMOUNT;
+                    isAsset = true;
+                } else {
+                    LogPrintf("%s : Couldn't get new owner asset from script: %s", __func__, HexStr(scriptPubKey));
+                }
+            } else {
+                CNewAsset asset;
+                if (AssetFromScript(scriptPubKey, asset, _strAddress)) {
+                    assetName = asset.strName;
+                    assetAmount = asset.nAmount;
+                    isAsset = true;
+                } else {
+                    LogPrintf("%s : Couldn't get new asset from script: %s", __func__, HexStr(scriptPubKey));
+                }
+            }
+        } else if (nType == TX_REISSUE_ASSET) {
+            CReissueAsset asset;
+            if (ReissueAssetFromScript(scriptPubKey, asset, _strAddress)) {
+                assetName = asset.strName;
+                assetAmount = asset.nAmount;
+                isAsset = true;
+            } else {
+                LogPrintf("%s : Couldn't get reissue asset from script: %s", __func__, HexStr(scriptPubKey));
+            }
+        } else if (nType == TX_TRANSFER_ASSET) {
+            CAssetTransfer asset;
+            if (TransferAssetFromScript(scriptPubKey, asset, _strAddress)) {
+                assetName = asset.strName;
+                assetAmount = asset.nAmount;
+                isAsset = true;
+            } else {
+                LogPrintf("%s : Couldn't get transfer asset from script: %s", __func__, HexStr(scriptPubKey));
+            }
+        } else {
+            LogPrintf("%s : Unsupported asset type: %s", __func__, nType);
+        }
+    } else {
+//        LogPrintf("%s : Found no asset in script: %s", __func__, HexStr(scriptPubKey));
+    }
+    if (isAsset) {
+//        LogPrintf("%s : Found assets in script at address %s : %s (%s)", __func__, _strAddress, assetName, assetAmount);
+        hashBytes = uint160(std::vector <unsigned char>(scriptPubKey.begin()+3, scriptPubKey.begin()+23));
+        return true;
+    }
+    return false;
 }

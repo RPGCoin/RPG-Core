@@ -343,7 +343,7 @@ class WalletTest(RPGTestFramework):
         for mode in [True, False]:
             self.nodes[0].ensure_ascii = mode
             # unicode check: Basic Multilingual Plane, Supplementary Plane respectively
-            for s in [u'????????', u'????']:
+            for s in [u'рыба', u'𝅘𝅥𝅯']:
                 addr = self.nodes[0].getaccountaddress(s)
                 label = self.nodes[0].getaccount(addr)
                 assert_equal(label, s)

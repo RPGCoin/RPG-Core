@@ -54,8 +54,8 @@ struct CAssetOutputEntry;
 class CCoinControl;
 struct CBlockAssetUndo;
 
-// 50000 * 82 Bytes == 4.1 Mb
-#define MAX_CACHE_ASSETS_SIZE 50000
+// 2500 * 82 Bytes == 205 KB (kilobytes) of memory
+#define MAX_CACHE_ASSETS_SIZE 2500
 
 // Create map that store that state of current reissued transaction that the mempool as accepted.
 // If an asset name is in this map, any other reissue transactions wont be accepted into the mempool
@@ -352,7 +352,7 @@ bool CheckTransferOwnerTx(const CTxOut& txOut);
 
 bool CheckEncodedIPFS(const std::string& hash, std::string& strError);
 
-bool CheckAmountWithUnits(const CAmount& nAmount, const uint8_t nUnits);
+bool CheckAmountWithUnits(const CAmount& nAmount, const int8_t nUnits);
 
 bool IsScriptNewAsset(const CScript& scriptPubKey, int& nStartingIndex);
 bool IsScriptNewUniqueAsset(const CScript& scriptPubKey, int& nStartingIndex);
@@ -398,4 +398,7 @@ bool CreateAssetTransaction(CWallet* pwallet, CCoinControl& coinControl, const s
 bool CreateReissueAssetTransaction(CWallet* pwallet, CCoinControl& coinControl, const CReissueAsset& asset, const std::string& address, std::pair<int, std::string>& error, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRequired);
 bool CreateTransferAssetTransaction(CWallet* pwallet, const CCoinControl& coinControl, const std::vector< std::pair<CAssetTransfer, std::string> >vTransfers, const std::string& changeAddress, std::pair<int, std::string>& error, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRequired);
 bool SendAssetTransaction(CWallet* pwallet, CWalletTx& transaction, CReserveKey& reserveKey, std::pair<int, std::string>& error, std::string& txid);
+
+/** Helper method for extracting address bytes, asset name and amount from an asset script */
+bool ParseAssetScript(CScript scriptPubKey, uint160 &hashBytes, std::string &assetName, CAmount &assetAmount);
 #endif //RPGCOIN_ASSET_PROTOCOL_H

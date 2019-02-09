@@ -128,10 +128,15 @@ bool GetLogCategory(uint32_t *f, const std::string *str);
 int LogPrintStr(const std::string &str);
 
 /** Get format string from VA_ARGS for error reporting */
-template<typename... Args> std::string FormatStringFromLogArgs(const char *fmt, const Args&... args) { return fmt; }
+template<typename... Args>
+std::string FormatStringFromLogArgs(const char *fmt, const Args &... args)
+{ return fmt; }
 
-static inline void MarkUsed() {}
-template<typename T, typename... Args> static inline void MarkUsed(const T& t, const Args&... args)
+static inline void MarkUsed()
+{}
+
+template<typename T, typename... Args>
+static inline void MarkUsed(const T &t, const Args &... args)
 {
     (void)t;
     MarkUsed(args...);
@@ -338,7 +343,8 @@ void TraceThread(const char *name, Callable func)
         LogPrintf("%s thread interrupt\n", name);
         throw;
     }
-    catch (const std::exception& e) {
+    catch (const std::exception &e)
+    {
         PrintExceptionContinue(&e, name);
         throw;
     }

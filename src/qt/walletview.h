@@ -59,8 +59,6 @@ public:
 
     void showOutOfSyncWarning(bool fShow);
 
-    void displayAssetInfo();
-
 private:
     ClientModel *clientModel;
     WalletModel *walletModel;

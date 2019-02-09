@@ -1,24 +1,24 @@
 Source: rpg
 Section: utils
 Priority: optional
-Maintainer: Matt Corallo +ADw-matt+AEA-mattcorallo.com+AD4-
-Uploaders: Matt Corallo +ADw-matt+AEA-mattcorallo.com+AD4-
+Maintainer: Matt Corallo <matt@mattcorallo.com>
+Uploaders: Matt Corallo <matt@mattcorallo.com>
 Build-Depends: debhelper,
  devscripts,
  automake,
  libtool,
  bash-completion,
- libdb4.8dev,
+ libdb4.8++-dev,
  libssl-dev,
  pkg-config,
  libevent-dev,
- libboost-system1.48-dev +AHw- libboost-system-dev (+AD4APg- 1.47),
- libboost-filesystem1.48-dev +AHw- libboost-filesystem-dev (+AD4APg- 1.47),
- libboost-program-options1.48-dev +AHw- libboost-program-options-dev (+AD4APg- 1.47),
- libboost-thread1.48-dev +AHw- libboost-thread-dev (+AD4APg- 1.47),
- libboost-test1.48-dev +AHw- libboost-test-dev (+AD4APg- 1.47),
- libboost-chrono1.48-dev +AHw- libboost-chrono-dev (+AD4APg- 1.47),
- libminiupnpc8-dev +AHw- libminiupnpc-dev,
+ libboost-system1.48-dev | libboost-system-dev (>> 1.47),
+ libboost-filesystem1.48-dev | libboost-filesystem-dev (>> 1.47),
+ libboost-program-options1.48-dev | libboost-program-options-dev (>> 1.47),
+ libboost-thread1.48-dev | libboost-thread-dev (>> 1.47),
+ libboost-test1.48-dev | libboost-test-dev (>> 1.47),
+ libboost-chrono1.48-dev | libboost-chrono-dev (>> 1.47),
+ libminiupnpc8-dev | libminiupnpc-dev,
  qt4-qmake, libqt4-dev,
  qttools5-dev-tools, qttools5-dev,
  libqrencode-dev,
@@ -32,9 +32,9 @@ Vcs-Browser: https://github.com/RPGCoin/RPG-Core
 
 Package: rpgd
 Architecture: any
-Depends: +ACQAew-shlibs:Depends+AH0-, +ACQAew-misc:Depends+AH0-
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: peer-to-peer network based digital currency - daemon
- Rpg is a free open source peer-to-peer electronic cash system that
+ RPG is a free open source peer-to-peer electronic cash system that
  is completely decentralized, without the need for a central server or
  trusted parties.  Users hold the crypto keys to their own money and
  transact directly with each other, with the help of a P2P network to
@@ -45,21 +45,21 @@ Description: peer-to-peer network based digital currency - daemon
 
 Package: rpg-qt
 Architecture: any
-Depends: +ACQAew-shlibs:Depends+AH0-, +ACQAew-misc:Depends+AH0-
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: peer-to-peer network based digital currency - Qt GUI
- Rpg is a free open source peer-to-peer electronic cash system that
+ RPG is a free open source peer-to-peer electronic cash system that
  is completely decentralized, without the need for a central server or
  trusted parties.  Users hold the crypto keys to their own money and
  transact directly with each other, with the help of a P2P network to
  check for double-spending.
  .
- This package provides Rpg-Qt, a GUI for Rpg based on Qt.
+ This package provides RPG-Qt, a GUI for RPG based on Qt.
 
 Package: rpg-tx
 Architecture: any
-Depends: +ACQAew-shlibs:Depends+AH0-, +ACQAew-misc:Depends+AH0-
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: peer-to-peer digital currency - standalone transaction tool
- Rpg is a free open source peer-to-peer electronic cash system that
+ RPG is a free open source peer-to-peer electronic cash system that
  is completely decentralized, without the need for a central server or
  trusted parties.  Users hold the crypto keys to their own money and
  transact directly with each other, with the help of a P2P network to

@@ -16,6 +16,7 @@
 #include "amount.h"
 #include "assets/assets.h"
 #include "validation.h"
+#include "platformstyle.h"
 
 #include <QDebug>
 #include <QStringList>
@@ -154,8 +155,17 @@ QVariant AssetTableModel::data(const QModelIndex &index, int role) const
         }
         case Qt::DecorationRole:
         {
-            QPixmap pixmap = QPixmap::fromImage(QImage(":/icons/asset_administrator"));
-            return rec->fIsAdministrator ? pixmap : QVariant();
+            QPixmap pixmap;
+
+            if (!rec->fIsAdministrator)
+                QVariant();
+
+            if (darkModeEnabled)
+                pixmap = QPixmap::fromImage(QImage(":/icons/asset_administrator_dark"));
+            else
+                pixmap = QPixmap::fromImage(QImage(":/icons/asset_administrator"));
+
+            return pixmap;
         }
         case Qt::ToolTipRole:
             return formatTooltip(rec);

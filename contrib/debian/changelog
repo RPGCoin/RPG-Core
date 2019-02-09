@@ -450,7 +450,7 @@ rpg (0.3.21~dfsg-1) unstable; urgency=low
     longer needed.
   * Link against unversioned berkeleydb. Update NEWS and README.Debian
     accordingly (and improve wording while at it).
-    Closes: Bug#621425. Thanks to Ond??ej Sur??.
+    Closes: Bug#621425. Thanks to Ondřej Surý.
   * This release also implicitly updates linkage against libcrypto++,
     which closes: bug#626953, #627024.
   * Disable linkage against not yet Debian packaged MiniUPnP.

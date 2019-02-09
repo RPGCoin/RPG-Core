@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Set DISTNAME, BRANCH and MAKEOPTS to the desired settings
-DISTNAME=rpg-1.0.0
+DISTNAME=rpg-1.1.0
 MAKEOPTS="-j $(nproc)"
 BRANCH=master
 clear

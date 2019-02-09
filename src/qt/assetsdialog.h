@@ -104,7 +104,6 @@ private Q_SLOTS:
     void customFeeFeatureChanged(bool);
 
     /** RPG START */
-    void mineButtonClicked();
     void assetControlUpdateSendCoinsDialog();
     void focusAsset(const QModelIndex& index);
     /** RPG END */

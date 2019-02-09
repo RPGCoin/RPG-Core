@@ -9,7 +9,7 @@
 #endif
 
 #include "util.h"
-
+#include "init.h"
 #include "chainparamsbase.h"
 #include "fs.h"
 #include "random.h"
@@ -686,7 +686,8 @@ bool TryCreateDirectories(const fs::path& p)
     try
     {
         return fs::create_directories(p);
-    } catch (const fs::filesystem_error&) {
+    } catch (const fs::filesystem_error &)
+    {
         if (!fs::exists(p) || !fs::is_directory(p))
             throw;
     }
@@ -879,7 +880,8 @@ void SetupEnvironment()
     try
     {
         std::locale(""); // Raises a runtime error if current locale is invalid
-    } catch (const std::runtime_error&) {
+    } catch (const std::runtime_error &)
+    {
         setenv("LC_ALL", "C", 1);
     }
 #endif

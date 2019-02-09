@@ -120,17 +120,6 @@ AssetsDialog::AssetsDialog(const PlatformStyle *_platformStyle, QWidget *parent)
     minimizeFeeSection(settings.value("fFeeSectionMinimized").toBool());
 
     /** RPG START */
-    // If the network is regtest. Add some helper buttons to the asset GUI
-    if (Params().NetworkIDString() != "regtest") {
-        ui->mineButton->hide();
-        ui->mineBlocksCount->hide();
-    } else {
-        ui->mineButton->setText(tr("Mine Block(s)"));
-        ui->mineButton->setToolTip(tr("Mine some number of blocks"));
-        ui->mineBlocksCount->setToolTip(tr("The number of blocks to mine"));
-        connect(ui->mineButton, SIGNAL(clicked()), this, SLOT(mineButtonClicked()));
-    }
-
     setupAssetControlFrame(platformStyle);
     setupScrollView(platformStyle);
     setupFeeControl(platformStyle);
@@ -240,35 +229,47 @@ void AssetsDialog::setupAssetControlFrame(const PlatformStyle *platformStyle)
 
     ui->frameAssetControl->setGraphicsEffect(GUIUtil::getShadowEffect());
 
-    ui->labelAssetControlFeatures->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelAssetControlFeatures->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelAssetControlFeatures->setFont(GUIUtil::getTopLabelFont());
 
-    ui->labelAssetControlQuantityText->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelAssetControlQuantityText->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelAssetControlQuantityText->setFont(GUIUtil::getSubLabelFont());
 
-    ui->labelAssetControlAmountText->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelAssetControlAmountText->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelAssetControlAmountText->setFont(GUIUtil::getSubLabelFont());
 
-    ui->labelAssetControlFeeText->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelAssetControlFeeText->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelAssetControlFeeText->setFont(GUIUtil::getSubLabelFont());
 
-    ui->labelAssetControlAfterFeeText->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelAssetControlAfterFeeText->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelAssetControlAfterFeeText->setFont(GUIUtil::getSubLabelFont());
 
-    ui->labelAssetControlBytesText->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelAssetControlBytesText->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelAssetControlBytesText->setFont(GUIUtil::getSubLabelFont());
 
-    ui->labelAssetControlLowOutputText->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelAssetControlLowOutputText->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelAssetControlLowOutputText->setFont(GUIUtil::getSubLabelFont());
 
-    ui->labelAssetControlChangeText->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelAssetControlChangeText->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelAssetControlChangeText->setFont(GUIUtil::getSubLabelFont());
 
     // Align the other labels next to the input buttons to the text in the same height
-    ui->labelAssetControlAutomaticallySelected->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelAssetControlAutomaticallySelected->setStyleSheet(STRING_LABEL_COLOR);
 
     // Align the Custom change address checkbox
-    ui->checkBoxAssetControlChange->setStyleSheet(QString(".QCheckBox{ %1; }").arg(COLOR_LABEL_STRING));
+    ui->checkBoxAssetControlChange->setStyleSheet(QString(".QCheckBox{ %1; }").arg(STRING_LABEL_COLOR));
+
+    ui->labelAssetControlQuantity->setFont(GUIUtil::getSubLabelFont());
+    ui->labelAssetControlAmount->setFont(GUIUtil::getSubLabelFont());
+    ui->labelAssetControlFee->setFont(GUIUtil::getSubLabelFont());
+    ui->labelAssetControlAfterFee->setFont(GUIUtil::getSubLabelFont());
+    ui->labelAssetControlBytes->setFont(GUIUtil::getSubLabelFont());
+    ui->labelAssetControlLowOutput->setFont(GUIUtil::getSubLabelFont());
+    ui->labelAssetControlChange->setFont(GUIUtil::getSubLabelFont());
+    ui->checkBoxAssetControlChange->setFont(GUIUtil::getSubLabelFont());
+    ui->lineEditAssetControlChange->setFont(GUIUtil::getSubLabelFont());
+    ui->labelAssetControlInsuffFunds->setFont(GUIUtil::getSubLabelFont());
+    ui->labelAssetControlAutomaticallySelected->setFont(GUIUtil::getSubLabelFont());
 
 }
 
@@ -291,14 +292,33 @@ void AssetsDialog::setupFeeControl(const PlatformStyle *platformStyle)
 
     ui->frameFee->setGraphicsEffect(GUIUtil::getShadowEffect());
 
-    ui->labelFeeHeadline->setStyleSheet(COLOR_LABEL_STRING);
+    ui->labelFeeHeadline->setStyleSheet(STRING_LABEL_COLOR);
     ui->labelFeeHeadline->setFont(GUIUtil::getSubLabelFont());
 
-    ui->labelSmartFee3->setStyleSheet(COLOR_LABEL_STRING);
-    ui->labelCustomPerKilobyte->setStyleSheet(QString(".QLabel{ %1; }").arg(COLOR_LABEL_STRING));
-    ui->radioSmartFee->setStyleSheet(COLOR_LABEL_STRING);
-    ui->radioCustomFee->setStyleSheet(COLOR_LABEL_STRING);
-    ui->checkBoxMinimumFee->setStyleSheet(QString(".QCheckBox{ %1; }").arg(COLOR_LABEL_STRING));
+    ui->labelSmartFee3->setStyleSheet(STRING_LABEL_COLOR);
+    ui->labelCustomPerKilobyte->setStyleSheet(QString(".QLabel{ %1; }").arg(STRING_LABEL_COLOR));
+    ui->radioSmartFee->setStyleSheet(STRING_LABEL_COLOR);
+    ui->radioCustomFee->setStyleSheet(STRING_LABEL_COLOR);
+    ui->checkBoxMinimumFee->setStyleSheet(QString(".QCheckBox{ %1; }").arg(STRING_LABEL_COLOR));
+
+    ui->buttonChooseFee->setFont(GUIUtil::getSubLabelFont());
+    ui->fallbackFeeWarningLabel->setFont(GUIUtil::getSubLabelFont());
+    ui->buttonMinimizeFee->setFont(GUIUtil::getSubLabelFont());
+    ui->radioSmartFee->setFont(GUIUtil::getSubLabelFont());
+    ui->labelSmartFee2->setFont(GUIUtil::getSubLabelFont());
+    ui->labelSmartFee3->setFont(GUIUtil::getSubLabelFont());
+    ui->confTargetSelector->setFont(GUIUtil::getSubLabelFont());
+    ui->radioCustomFee->setFont(GUIUtil::getSubLabelFont());
+    ui->labelCustomPerKilobyte->setFont(GUIUtil::getSubLabelFont());
+    ui->customFee->setFont(GUIUtil::getSubLabelFont());
+    ui->labelMinFeeWarning->setFont(GUIUtil::getSubLabelFont());
+    ui->optInRBF->setFont(GUIUtil::getSubLabelFont());
+    ui->sendButton->setFont(GUIUtil::getSubLabelFont());
+    ui->clearButton->setFont(GUIUtil::getSubLabelFont());
+    ui->addButton->setFont(GUIUtil::getSubLabelFont());
+    ui->labelSmartFee->setFont(GUIUtil::getSubLabelFont());
+    ui->labelFeeEstimation->setFont(GUIUtil::getSubLabelFont());
+    ui->labelFeeMinimized->setFont(GUIUtil::getSubLabelFont());
 
 }
 
@@ -615,6 +635,9 @@ void AssetsDialog::setBalance(const CAmount& balance, const CAmount& unconfirmed
     Q_UNUSED(watchBalance);
     Q_UNUSED(watchUnconfirmedBalance);
     Q_UNUSED(watchImmatureBalance);
+
+    ui->labelBalance->setFont(GUIUtil::getSubLabelFont());
+    ui->label->setFont(GUIUtil::getSubLabelFont());
 
     if(model && model->getOptionsModel())
     {
@@ -963,28 +986,6 @@ void AssetsDialog::assetControlUpdateLabels()
 }
 
 /** RPG START */
-void AssetsDialog::mineButtonClicked()
-{
-
-    int num_generate = ui->mineBlocksCount->value();
-    uint64_t max_tries = 1000000;
-
-    std::shared_ptr<CReserveScript> coinbase_script;
-    model->getWallet()->GetScriptForMining(coinbase_script);
-
-    // If the keypool is exhausted, no script is returned at all.  Catch this.
-    if (!coinbase_script) {
-        return;
-    }
-
-    //throw an error if no script was provided
-    if (coinbase_script->reserveScript.empty()) {
-        return;
-    }
-
-    generateBlocks(coinbase_script, num_generate, max_tries, true);
-}
-
 void AssetsDialog::assetControlUpdateSendCoinsDialog()
 {
     for(int i = 0; i < ui->entries->count(); ++i)

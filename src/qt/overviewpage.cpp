@@ -57,7 +57,11 @@ public:
         int halfheight = (mainRect.height() - 2*ypad)/2;
         QRect amountRect(mainRect.left() + xspace, mainRect.top()+ypad, mainRect.width() - xspace, halfheight);
         QRect addressRect(mainRect.left() + xspace, mainRect.top()+ypad+halfheight, mainRect.width() - xspace, halfheight);
-        icon = platformStyle->SingleColorIcon(icon);
+
+        if (darkModeEnabled)
+            icon = platformStyle->SingleColorIcon(icon, COLOR_TOOLBAR_NOT_SELECTED_TEXT);
+        else
+            icon = platformStyle->SingleColorIcon(icon, COLOR_LABELS);
         icon.paint(painter, decorationRect);
 
         QDateTime date = index.data(TransactionTableModel::DateRole).toDateTime();
@@ -78,6 +82,7 @@ public:
             amountText = QString("[") + amountText + QString("]");
         }
 
+        painter->setFont(GUIUtil::getSubLabelFont());
         // Concatenate the strings if needed before painting
         GUIUtil::concatenate(painter, address, painter->fontMetrics().width(amountText), addressRect.left(), addressRect.right());
 
@@ -150,8 +155,10 @@ public:
         /** Get the icon for the administrator of the asset */
         QPixmap pixmap = qvariant_cast<QPixmap>(index.data(Qt::DecorationRole));
 
+        bool admin = index.data(AssetTableModel::AdministratorRole).toBool();
+
         /** Need to know the heigh to the pixmap. If it is 0 we don't we dont own this asset so dont have room for the icon */
-        int nIconSize = pixmap.height();
+        int nIconSize = admin ? pixmap.height() : 0;
         int extraNameSpacing = 12;
         if (nIconSize)
             extraNameSpacing = 0;
@@ -178,7 +185,7 @@ public:
         QLinearGradient gradient(mainRect.topLeft(), mainRect.bottomRight());
 
         // Select the color of the gradient
-        if (index.data(AssetTableModel::AdministratorRole).toBool()) {
+        if (admin) {
             if (darkModeEnabled) {
                 gradient.setColorAt(0, COLOR_ADMIN_CARD_DARK);
                 gradient.setColorAt(1, COLOR_ADMIN_CARD_DARK);
@@ -210,16 +217,20 @@ public:
 
         /** Create the font that is used for painting the asset name */
         QFont nameFont;
-        nameFont.setFamily("Arial");
+#if !defined(Q_OS_MAC)
+        nameFont.setFamily("Open Sans");
+#endif
         nameFont.setPixelSize(18);
-        nameFont.setWeight(400);
+        nameFont.setWeight(QFont::Weight::Normal);
         nameFont.setLetterSpacing(QFont::SpacingType::AbsoluteSpacing, -0.4);
 
         /** Create the font that is used for painting the asset amount */
         QFont amountFont;
-        amountFont.setFamily("Arial");
+#if !defined(Q_OS_MAC)
+        amountFont.setFamily("Open Sans");
+#endif
         amountFont.setPixelSize(14);
-        amountFont.setWeight(600);
+        amountFont.setWeight(QFont::Weight::Normal);
         amountFont.setLetterSpacing(QFont::SpacingType::AbsoluteSpacing, -0.3);
 
         /** Get the name and formatted amount from the data */
@@ -227,29 +238,30 @@ public:
         QString amountText = index.data(AssetTableModel::FormattedAmountRole).toString();
 
         // Setup the pens
-        QPen penAmount(COLOR_ASSET_TEXT, 10, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin);
-        QPen penAssetName(COLOR_ASSET_TEXT, 10, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin);
+        QColor textColor = COLOR_WHITE;
+        if (darkModeEnabled)
+            textColor = COLOR_TOOLBAR_SELECTED_TEXT_DARK_MODE;
+
+        QPen penName(textColor);
 
         /** Start Concatenation of Asset Name */
         // Get the width in pixels that the amount takes up (because they are different font,
         // we need to do this before we call the concatenate function
         painter->setFont(amountFont);
-        painter->setPen(penAmount);
         int amount_width = painter->fontMetrics().width(amountText);
 
         // Set the painter for the font used for the asset name, so that the concatenate function estimated width correctly
         painter->setFont(nameFont);
-        painter->setPen(penAssetName);
 
         GUIUtil::concatenate(painter, name, amount_width, assetNameRect.left(), amountRect.right());
 
         /** Paint the asset name */
+        painter->setPen(penName);
         painter->drawText(assetNameRect, Qt::AlignLeft|Qt::AlignVCenter, name);
 
+
         /** Paint the amount */
-        painter->setPen(penAmount);
         painter->setFont(amountFont);
-        painter->setOpacity(0.65);
         painter->drawText(amountRect, Qt::AlignRight|Qt::AlignVCenter, amountText);
 
         painter->restore();
@@ -266,6 +278,7 @@ public:
 };
 #include "overviewpage.moc"
 #include "rpggui.h"
+#include <QFontDatabase>
 
 OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) :
     QWidget(parent),
@@ -302,7 +315,6 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
     ui->listAssets->setMinimumHeight(5 * (42 + 2));
     ui->listAssets->viewport()->setAutoFillBackground(false);
 
-
     // Delay before filtering assetes in ms
     static const int input_filter_delay = 200;
 
@@ -327,33 +339,46 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
     ui->frame->setStyleSheet(QString(".QFrame {background-color: %1; padding-bottom: 10px; padding-right: 5px;}").arg(platformStyle->WidgetBackGroundColor().name()));
     ui->frame_2->setStyleSheet(QString(".QFrame {background-color: %1; padding-left: 5px;}").arg(platformStyle->WidgetBackGroundColor().name()));
 
-//    ui->verticalLayout_2->setSpacing(10);
-//    ui->verticalLayout_3->setSpacing(10);
-
     /** Create the shadow effects on the frames */
     ui->assetFrame->setGraphicsEffect(GUIUtil::getShadowEffect());
     ui->frame->setGraphicsEffect(GUIUtil::getShadowEffect());
     ui->frame_2->setGraphicsEffect(GUIUtil::getShadowEffect());
 
     /** Update the labels colors */
-    ui->assetBalanceLabel->setStyleSheet(COLOR_LABEL_STRING);
-    ui->rpgBalancesLabel->setStyleSheet(COLOR_LABEL_STRING);
-    ui->labelBalanceText->setStyleSheet(COLOR_LABEL_STRING);
-    ui->labelPendingText->setStyleSheet(COLOR_LABEL_STRING);
-    ui->labelImmatureText->setStyleSheet(COLOR_LABEL_STRING);
-    ui->labelTotalText->setStyleSheet(COLOR_LABEL_STRING);
-    ui->labelSpendable->setStyleSheet(COLOR_LABEL_STRING);
-    ui->labelWatchonly->setStyleSheet(COLOR_LABEL_STRING);
-    ui->recentTransactionsLabel->setStyleSheet(COLOR_LABEL_STRING);
+    ui->assetBalanceLabel->setStyleSheet(STRING_LABEL_COLOR);
+    ui->rpgBalancesLabel->setStyleSheet(STRING_LABEL_COLOR);
+    ui->labelBalanceText->setStyleSheet(STRING_LABEL_COLOR);
+    ui->labelPendingText->setStyleSheet(STRING_LABEL_COLOR);
+    ui->labelImmatureText->setStyleSheet(STRING_LABEL_COLOR);
+    ui->labelTotalText->setStyleSheet(STRING_LABEL_COLOR);
+    ui->labelSpendable->setStyleSheet(STRING_LABEL_COLOR);
+    ui->labelWatchonly->setStyleSheet(STRING_LABEL_COLOR);
+    ui->recentTransactionsLabel->setStyleSheet(STRING_LABEL_COLOR);
 
     /** Update the labels font */
     ui->rpgBalancesLabel->setFont(GUIUtil::getTopLabelFont());
     ui->assetBalanceLabel->setFont(GUIUtil::getTopLabelFont());
     ui->recentTransactionsLabel->setFont(GUIUtil::getTopLabelFont());
 
+    /** Update the sub labels font */
+    ui->labelBalanceText->setFont(GUIUtil::getSubLabelFont());
+    ui->labelPendingText->setFont(GUIUtil::getSubLabelFont());
+    ui->labelImmatureText->setFont(GUIUtil::getSubLabelFont());
+    ui->labelSpendable->setFont(GUIUtil::getSubLabelFont());
+    ui->labelWatchonly->setFont(GUIUtil::getSubLabelFont());
+    ui->labelBalance->setFont(GUIUtil::getSubLabelFont());
+    ui->labelUnconfirmed->setFont(GUIUtil::getSubLabelFont());
+    ui->labelImmature->setFont(GUIUtil::getSubLabelFont());
+    ui->labelWatchAvailable->setFont(GUIUtil::getSubLabelFont());
+    ui->labelWatchPending->setFont(GUIUtil::getSubLabelFont());
+    ui->labelWatchImmature->setFont(GUIUtil::getSubLabelFont());
+    ui->labelTotalText->setFont(GUIUtil::getSubLabelFont());
+    ui->labelTotal->setFont(GUIUtil::getTopLabelFontBolded());
+    ui->labelWatchTotal->setFont(GUIUtil::getTopLabelFontBolded());
+
     /** Create the search bar for assets */
     ui->assetSearch->setAttribute(Qt::WA_MacShowFocusRect, 0);
-    ui->assetSearch->setStyleSheet(".QLineEdit {border: 1px solid #4960ad; border-radius: 5px;}");
+    ui->assetSearch->setStyleSheet(QString(".QLineEdit {border: 1px solid %1; border-radius: 5px;}").arg(COLOR_LABELS.name()));
     ui->assetSearch->setAlignment(Qt::AlignVCenter);
     QFont font = ui->assetSearch->font();
     font.setPointSize(12);
@@ -362,40 +387,36 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
     QFontMetrics fm = QFontMetrics(ui->assetSearch->font());
     ui->assetSearch->setFixedHeight(fm.height()+ 5);
 
-    /** Setup the asset info grid labels and values */
-    ui->assetInfoTitleLabel->setText("<b>" + tr("Asset Activation Status") + "</b>");
-    ui->assetInfoPercentageLabel->setText(tr("Current Percentage") + ":");
-    ui->assetInfoStatusLabel->setText(tr("Status") + ":");
-    ui->assetInfoBlockLabel->setText(tr("Target Percentage") + ":");
-    ui->assetInfoPossibleLabel->setText(tr("Could Vote Pass") + ":");
-    ui->assetInfoBlocksLeftLabel->setText(tr("Voting Block Cycle") + ":");
-
-    ui->assetInfoTitleLabel->setStyleSheet("background-color: transparent");
-    ui->assetInfoPercentageLabel->setStyleSheet("background-color: transparent");
-    ui->assetInfoStatusLabel->setStyleSheet("background-color: transparent");
-    ui->assetInfoBlockLabel->setStyleSheet("background-color: transparent");
-    ui->assetInfoPossibleLabel->setStyleSheet("background-color: transparent");
-    ui->assetInfoBlocksLeftLabel->setStyleSheet("background-color: transparent");
-
-    ui->assetInfoPercentageValue->setStyleSheet("background-color: transparent");
-    ui->assetInfoStatusValue->setStyleSheet("background-color: transparent");
-    ui->assetInfoBlockValue->setStyleSheet("background-color: transparent");
-    ui->assetInfoPossibleValue->setStyleSheet("background-color: transparent");
-    ui->assetInfoBlocksLeftValue->setStyleSheet("background-color: transparent");
-
-    /** Setup the RPG Balance Colors for darkmode */
-    QString labelColor = QString(".QLabel { color: %1 }").arg(platformStyle->TextColor().name());
-    ui->labelBalance->setStyleSheet(labelColor);
-    ui->labelUnconfirmed->setStyleSheet(labelColor);
-    ui->labelImmature->setStyleSheet(labelColor);
-    ui->labelTotal->setStyleSheet(labelColor);
-    ui->labelWatchAvailable->setStyleSheet(labelColor);
-    ui->labelWatchPending->setStyleSheet(labelColor);
-    ui->labelWatchImmature->setStyleSheet(labelColor);
-    ui->labelWatchTotal->setStyleSheet(labelColor);
-
     // Trigger the call to show the assets table if assets are active
     showAssets();
+
+
+    // context menu actions
+    sendAction = new QAction(tr("Send Asset"), this);
+    QAction *copyAmountAction = new QAction(tr("Copy Amount"), this);
+    QAction *copyNameAction = new QAction(tr("Copy Name"), this);
+    issueSub = new QAction(tr("Issue Sub Asset"), this);
+    issueUnique = new QAction(tr("Issue Unique Asset"), this);
+    reissue = new QAction(tr("Reissue Asset"), this);
+
+
+    sendAction->setObjectName("Send");
+    issueSub->setObjectName("Sub");
+    issueUnique->setObjectName("Unique");
+    reissue->setObjectName("Reissue");
+    copyNameAction->setObjectName("Copy Name");
+    copyAmountAction->setObjectName("Copy Amount");
+
+    // context menu
+    contextMenu = new QMenu(this);
+    contextMenu->addAction(sendAction);
+    contextMenu->addAction(issueSub);
+    contextMenu->addAction(issueUnique);
+    contextMenu->addAction(reissue);
+    contextMenu->addSeparator();
+    contextMenu->addAction(copyNameAction);
+    contextMenu->addAction(copyAmountAction);
+    // context menu signals
 }
 
 void OverviewPage::handleTransactionClicked(const QModelIndex &index)
@@ -406,8 +427,52 @@ void OverviewPage::handleTransactionClicked(const QModelIndex &index)
 
 void OverviewPage::handleAssetClicked(const QModelIndex &index)
 {
-    if(assetFilter)
-            Q_EMIT assetClicked(assetFilter->mapToSource(index));
+    if(assetFilter) {
+
+
+        QString name = index.data(AssetTableModel::AssetNameRole).toString();
+        bool fOwner = false;
+        if (IsAssetNameAnOwner(name.toStdString())) {
+            fOwner = true;
+            name = name.left(name.size() - 1);
+            sendAction->setDisabled(true);
+        } else {
+            sendAction->setDisabled(false);
+        }
+
+        if (!index.data(AssetTableModel::AdministratorRole).toBool()) {
+            issueSub->setDisabled(true);
+            issueUnique->setDisabled(true);
+            reissue->setDisabled(true);
+        } else {
+            issueSub->setDisabled(false);
+            issueUnique->setDisabled(false);
+            reissue->setDisabled(true);
+            CNewAsset asset;
+            if (passets && passets->GetAssetMetaDataIfExists(name.toStdString(), asset))
+                if (asset.nReissuable)
+                    reissue->setDisabled(false);
+
+        }
+
+        QAction* action = contextMenu->exec(QCursor::pos());
+
+        if (action) {
+            if (action->objectName() == "Send")
+                    Q_EMIT assetSendClicked(assetFilter->mapToSource(index));
+            else if (action->objectName() == "Sub")
+                    Q_EMIT assetIssueSubClicked(assetFilter->mapToSource(index));
+            else if (action->objectName() == "Unique")
+                    Q_EMIT assetIssueUniqueClicked(assetFilter->mapToSource(index));
+            else if (action->objectName() == "Reissue")
+                    Q_EMIT assetReissueClicked(assetFilter->mapToSource(index));
+            else if (action->objectName() == "Copy Name")
+                GUIUtil::setClipboard(index.data(AssetTableModel::AssetNameRole).toString());
+            else if (action->objectName() == "Copy Amount")
+                GUIUtil::setClipboard(index.data(AssetTableModel::FormattedAmountRole).toString());
+        }
+    }
+
 }
 
 void OverviewPage::handleOutOfSyncWarningClicks()
@@ -565,85 +630,6 @@ void OverviewPage::showAssets()
         ui->assetVerticalSpaceWidget->show();
         ui->assetVerticalSpaceWidget2->show();
     }
-
-    displayAssetInfo();
-}
-
-void OverviewPage::displayAssetInfo()
-{
-
-    const int nBlockHeight = chainActive.Height() + 1;
-
-    QString status;
-    QString currentCount;
-    currentCount.sprintf("%d of %d blocks", nBlockHeight, ASSET_ACTIVATION_HEIGHT);
-
-    QString currentCountIn;
-    currentCountIn.sprintf("%d more blocks", ASSET_ACTIVATION_HEIGHT-nBlockHeight);
-
-    if (AreAssetsDeployed()) {
-      hideAssetInfo();
-      return;
-    } else {
-      if (nBlockHeight < ASSET_ACTIVATION_HEIGHT) {
-        status = tr("Waiting - ") +  currentCount;
-      }
-    }
-
-    ui->assetInfoStatusValue->setText(status);
-
-    if (AreAssetsDeployed()) {
-        BIP9Stats statsStruct = VersionBitsTipStatistics(Params().GetConsensus(), Consensus::DeploymentPos::DEPLOYMENT_ASSETS);
-
-        double targetDouble = double(statsStruct.threshold) / double(statsStruct.period);
-        QString targetPercentage;
-        targetPercentage.sprintf("%0.2f%%", targetDouble * 100);
-        ui->assetInfoBlockValue->setText(targetPercentage);
-
-        double currentDouble = double(statsStruct.count) / double(statsStruct.period);
-        QString currentPercentage;
-        currentPercentage.sprintf("%0.2f%%", currentDouble * 100);
-        ui->assetInfoPercentageValue->setText(currentPercentage);
-
-        QString possible = statsStruct.possible ? tr("yes") : tr("no");
-        ui->assetInfoPossibleValue->setText(possible);
-
-        ui->assetInfoBlocksLeftValue->setText(currentCount);
-
-        ui->assetInfoPercentageValue->show();
-        ui->assetInfoBlockValue->show();
-        ui->assetInfoPercentageLabel->show();
-        ui->assetInfoBlockLabel->show();
-        ui->assetInfoPossibleLabel->show();
-        ui->assetInfoPossibleValue->show();
-        ui->assetInfoBlocksLeftLabel->show();
-        ui->assetInfoBlocksLeftValue->show();
-    } else { 
-        ui->assetInfoBlockLabel->setText(tr("Active in") + ":");
-        ui->assetInfoBlockValue->setText(currentCountIn);
-        ui->assetInfoPercentageValue->hide();
-        ui->assetInfoPercentageLabel->hide();
-        ui->assetInfoPossibleLabel->hide();
-        ui->assetInfoPossibleValue->hide();
-        ui->assetInfoBlocksLeftLabel->hide();
-        ui->assetInfoBlocksLeftValue->hide();
-    }
-}
-
-void OverviewPage::hideAssetInfo()
-{
-    ui->assetInfoPercentageValue->hide();
-    ui->assetInfoBlockValue->hide();
-    ui->assetInfoStatusValue->hide();
-    ui->assetInfoPossibleValue->hide();
-    ui->assetInfoBlocksLeftValue->hide();
-
-    ui->assetInfoTitleLabel->hide();
-    ui->assetInfoBlockLabel->hide();
-    ui->assetInfoStatusLabel->hide();
-    ui->assetInfoPercentageLabel->hide();
-    ui->assetInfoPossibleLabel->hide();
-    ui->assetInfoBlocksLeftLabel->hide();
 }
 
 void OverviewPage::assetSearchChanged()

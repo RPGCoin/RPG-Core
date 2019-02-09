@@ -76,6 +76,7 @@
 #include <QUrlQuery>
 #include <validation.h>
 #include <tinyformat.h>
+#include <QFontDatabase>
 
 #endif
 

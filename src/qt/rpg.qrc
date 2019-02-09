@@ -61,6 +61,7 @@
         <file alias="network_disabled">res/icons/network_disabled.png</file>
         <file alias="refresh">res/icons/refresh.png</file>
         <file alias="asset_administrator">res/icons/asset_administrator.png</file>
+        <file alias="asset_administrator_dark">res/icons/asset_administrator_dark.png</file>
         <file alias="asset_create">res/icons/asset_create.png</file>
         <file alias="asset_create_selected">res/icons/asset_create_selected.png</file>
         <file alias="asset_manage">res/icons/asset_manage.png</file>
@@ -132,5 +133,17 @@
         <file alias="radio-unchecked-press">res/darkstyle/icon_radiobutton_unchecked_pressed.png</file>
         <file alias="radio-checked-disabled">res/darkstyle/icon_radiobutton_checked_disabled.png</file>
         <file alias="radio-unchecked-disabled">res/darkstyle/icon_radiobutton_unchecked_disabled.png</file>
+    </qresource>
+    <qresource prefix="/fonts">
+        <file alias="opensans-bold">res/fonts/OpenSans-Bold.ttf</file>
+        <file alias="opensans-bolditalic">res/fonts/OpenSans-BoldItalic.ttf</file>
+        <file alias="opensans-extrabold">res/fonts/OpenSans-ExtraBold.ttf</file>
+        <file alias="opensans-extrabolditalic">res/fonts/OpenSans-ExtraBoldItalic.ttf</file>
+        <file alias="opensans-italic">res/fonts/OpenSans-Italic.ttf</file>
+        <file alias="opensans-light">res/fonts/OpenSans-Light.ttf</file>
+        <file alias="opensans-lightitalic">res/fonts/OpenSans-LightItalic.ttf</file>
+        <file alias="opensans-regular">res/fonts/OpenSans-Regular.ttf</file>
+        <file alias="opensans-semibold">res/fonts/OpenSans-SemiBold.ttf</file>
+        <file alias="opensans-semibolditalic">res/fonts/OpenSans-SemiBoldItalic.ttf</file>
     </qresource>
 </RCC>
