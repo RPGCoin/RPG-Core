@@ -16,13 +16,13 @@ A prefix will be generated that's suitable for plugging into RPG's
 configure. In the above example, a dir named x86_64-w64-mingw32 will be
 created. To use it for RPG:
 
-    ./configure --prefix=`pwd`/depends/x86_64-w64-mingw32
-
+    ./configure --prefix=`pwd`/depends/x86_64-w64-mingw32 --enable-cxx --disable-shared --with-pic CXXFLAGS="-fPIC" CPPFLAGS="-fPIC"
 Common `host-platform-triplets` for cross compilation are:
 
 - `i686-w64-mingw32` for Win32
 - `x86_64-w64-mingw32` for Win64
 - `x86_64-apple-darwin11` for MacOSX
+- `x86_64-pc-linux-gnu` for Linux Intel/AMD x64
 - `arm-linux-gnueabihf` for Linux ARM 32 bit
 - `aarch64-linux-gnu` for Linux ARM 64 bit
 
