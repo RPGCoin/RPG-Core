@@ -121,3 +121,18 @@ Notes
 * Building with downloaded Qt binaries is not officially supported. 
 
 * autoreconf (boost issue)
+
+## Troubleshooting
+
+If you receive an error such as the following during the make:
+
+ccache: error: Failed to create temporary file for /home/YOURUSERNAME/.ccache/1/2/y3we5gwstrvw2qa43evrd-123174.o.tmp.stdout: Permission denied
+you should run the following command before making
+
+This is caused by ccache temp folders that got created by doing a build as root in the past (even if not RPG Coin but uses ccache) and the folders get owned by root, and so you can't write to them in the build without running it as sudo.  to avoid this, just take ownership of the .ccache folder then run the make again.
+
+for example
+
+sudo chown YOURUSERNAME:YOURUSERGROUP -R /home/YOURUSERNAME/.ccache 
+
+---

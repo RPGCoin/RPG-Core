@@ -3,26 +3,43 @@ UNIX BUILD NOTES
 Some notes on how to build RPG Core in Unix.
 
 (for OpenBSD specific instructions, see [build-openbsd.md](build-openbsd.md))
+PreBuild
+---------------------
+If you want to share your build on other systems, you should first build your depends. see ../depends/README.md for information.
 
-Note
+First, Autogen
+---------------------
+    ./autogen.sh
+
+Next, Configure
 ---------------------
 Always use absolute paths to configure and compile rpg and the dependencies,
 for example, when specifying the path of the dependency:
 
-	../dist/configure --enable-cxx --disable-shared --with-pic --prefix=$BDB_PREFIX
+	./configure --enable-cxx --disable-shared --with-pic --prefix=$BDB_PREFIX
 
-Here BDB_PREFIX must be an absolute path - it is defined using $(pwd) which ensures
+Here BDB_PREFIX must be an absolute path - it is defined using `pwd` which ensures
 the usage of the absolute path.
 
-To Build
+For example, 
+    ./configure --enable-cxx --disable-shared --with-pic --prefix=$`pwd`/depends/x86_64-pc-linux-gnu
+alternatively set BDB_PREFIX by running in your shell
+    BDB_PREFIX=`pwd`/depends/HOST
+replacing HOST with the target build host, in this case x86_64-pc-linux-gnu
+
+Then Build
+---------------------
+This is easy:
+    make -j10
+When using make you can specify the number of cores to use in the build by using the flag -j(cores) for example if you had 10 cores -j10 if 4, -j4 (OPTIONAL)
+
+To Recap and put them all together:
 ---------------------
 
-```bash
-./autogen.sh
-./configure
-make
-make install # optional
-```
+    ./autogen.sh
+    ./configure --enable-cxx --disable-shared --with-pic --prefix=$`pwd`/depends/x86_64-pc-linux-gnu
+    make
+    
 
 This will build rpg-qt as well if the dependencies are met.
 
@@ -30,7 +47,7 @@ On most Linux distros the "fPIC" flag needs to be set.  If this flag is not spec
 ```bash
 relocation R_X86_64_32 against `.rodata' can not be used when making a shared object; recompile with -fPIC
 ```
- 
+This should be set automatically during the configure but if you get an error, you can set it manually...
 To resolve or avoid the following build error specify the following configure parameters, make clean, and then build:
 ```bash
 ./configure --enable-cxx --disable-shared --with-pic --prefix=$BDB_PREFIX CXXFLAGS="-fPIC" CPPFLAGS="-fPIC"
@@ -357,3 +374,18 @@ Then build using:
 *Note on debugging*: The version of `gdb` installed by default is [ancient and considered harmful](https://wiki.freebsd.org/GdbRetirement).
 It is not suitable for debugging a multi-threaded C++ program, not even for getting backtraces. Please install the package `gdb` and
 use the versioned gdb command e.g. `gdb7111`.
+
+## Troubleshooting
+
+If you receive an error such as the following during the make:
+
+ccache: error: Failed to create temporary file for /home/YOURUSERNAME/.ccache/1/2/y3we5gwstrvw2qa43evrd-123174.o.tmp.stdout: Permission denied
+you should run the following command before making
+
+This is caused by ccache temp folders that got created by doing a build as root in the past (even if not RPG Coin but uses ccache) and the folders get owned by root, and so you can't write to them in the build without running it as sudo.  to avoid this, just take ownership of the .ccache folder then run the make again.
+
+for example
+
+sudo chown YOURUSERNAME:YOURUSERGROUP -R /home/YOURUSERNAME/.ccache 
+
+---

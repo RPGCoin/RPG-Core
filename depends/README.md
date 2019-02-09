@@ -16,7 +16,8 @@ A prefix will be generated that's suitable for plugging into RPG's
 configure. In the above example, a dir named x86_64-w64-mingw32 will be
 created. To use it for RPG:
 
-    ./configure --prefix=`pwd`/depends/x86_64-w64-mingw32 --enable-cxx --disable-shared --with-pic CXXFLAGS="-fPIC" CPPFLAGS="-fPIC"
+    ./configure --prefix=`pwd`/depends/x86_64-pc-linux-gnu --enable-cxx --disable-shared
+
 Common `host-platform-triplets` for cross compilation are:
 
 - `i686-w64-mingw32` for Win32
@@ -57,3 +58,17 @@ Additional targets:
 - [description.md](description.md): General description of the depends system
 - [packages.md](packages.md): Steps for adding packages
 
+## Troubleshooting
+
+If you receive an error such as the following during the make:
+
+ccache: error: Failed to create temporary file for /home/YOURUSERNAME/.ccache/1/2/y3we5gwstrvw2qa43evrd-123174.o.tmp.stdout: Permission denied
+you should run the following command before making
+
+This is caused by ccache temp folders that got created by doing a build as root in the past (even if not RPG Coin but uses ccache) and the folders get owned by root, and so you can't write to them in the build without running it as sudo.  to avoid this, just take ownership of the .ccache folder then run the make again.
+
+for example
+
+sudo chown YOURUSERNAME:YOURUSERGROUP -R /home/YOURUSERNAME/.ccache 
+
+---
