@@ -1,6 +1,6 @@
 RPG Core integration/staging tree
 =====================================
-
+[![Build Status](https://travis-ci.org/RPGCoin/RPG-Core.svg?branch=master)](https://travis-ci.org/RPGCoin/RPG-Core)
 https://rpgcoin.gg
 
 What is RPGcoin?
