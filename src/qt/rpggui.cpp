@@ -211,6 +211,12 @@ RPGGUI::RPGGUI(const PlatformStyle *_platformStyle, const NetworkStyle *networkS
     // Accept D&D of URIs
     setAcceptDrops(true);
 
+    loadFonts();
+
+#if !defined(Q_OS_MAC)
+    this->setFont(QFont("Open Sans"));
+#endif
+
     // Create actions for the toolbar, menu bar and tray/dock icon
     // Needs walletFrame to be initialized
     createActions();
@@ -318,13 +324,30 @@ RPGGUI::~RPGGUI()
     delete rpcConsole;
 }
 
+void RPGGUI::loadFonts()
+{
+    QFontDatabase::addApplicationFont(":/fonts/opensans-bold");
+    QFontDatabase::addApplicationFont(":/fonts/opensans-bolditalic");
+    QFontDatabase::addApplicationFont(":/fonts/opensans-extrabold");
+    QFontDatabase::addApplicationFont(":/fonts/opensans-extrabolditalic");
+    QFontDatabase::addApplicationFont(":/fonts/opensans-italic");
+    QFontDatabase::addApplicationFont(":/fonts/opensans-light");
+    QFontDatabase::addApplicationFont(":/fonts/opensans-lightitalic");
+    QFontDatabase::addApplicationFont(":/fonts/opensans-regular");
+    QFontDatabase::addApplicationFont(":/fonts/opensans-semibold");
+    QFontDatabase::addApplicationFont(":/fonts/opensans-semibolditalic");
+}
+
+
 void RPGGUI::createActions()
 {
     QFont font = QFont();
-    font.setPixelSize(25);
-    font.setWeight(400);
-    font.setLetterSpacing(QFont::SpacingType::AbsoluteSpacing, -0.8);
-    font.setFamily("Arial");
+    font.setPixelSize(22);
+    font.setLetterSpacing(QFont::SpacingType::AbsoluteSpacing, -0.43);
+#if !defined(Q_OS_MAC)
+    font.setFamily("Open Sans");
+#endif
+    font.setWeight(QFont::Weight::ExtraLight);
 
     QActionGroup *tabGroup = new QActionGroup(this);
 
@@ -590,16 +613,26 @@ void RPGGUI::createToolBars()
 //        toolbar->addAction(messagingAction);
 //        toolbar->addAction(votingAction);
 
+        QString openSansFontString = "font: normal 22pt \"Open Sans\";";
+        QString normalString = "font: normal 22pt \"Arial\";";
+        QString stringToUse = "";
+
+#if !defined(Q_OS_MAC)
+        stringToUse = openSansFontString;
+#else
+        stringToUse = normalString;
+#endif
+
         /** RPG START */
         QString tbStyleSheet = ".QToolBar {background-color : transparent; border-color: transparent; }  "
                                ".QToolButton {background-color: transparent; border-color: transparent; width: 249px; color: %1; border: none;} "
-                               ".QToolButton:checked {background: none; background-color: none; selection-background-color: none; color: %2; border: none;} "
+                               ".QToolButton:checked {background: none; background-color: none; selection-background-color: none; color: %2; border: none; font: %4} "
                                ".QToolButton:hover {background: none; background-color: none; border: none; color: %3;} "
                                ".QToolButton:disabled {color: gray;}";
 
         toolbar->setStyleSheet(tbStyleSheet.arg(platformStyle->ToolBarNotSelectedTextColor().name(),
                                                 platformStyle->ToolBarSelectedTextColor().name(),
-                                                platformStyle->DarkOrangeColor().name()));
+                                                platformStyle->DarkOrangeColor().name(), stringToUse));
 
         toolbar->setOrientation(Qt::Vertical);
         toolbar->setIconSize(QSize(40, 40));
@@ -622,22 +655,23 @@ void RPGGUI::createToolBars()
 
         /** Create the shadow effects for the main wallet frame. Make it so it puts a shadow on the tool bar */
         QGraphicsDropShadowEffect *walletFrameShadow = new QGraphicsDropShadowEffect;
-        walletFrameShadow->setBlurRadius(8.0);
-        walletFrameShadow->setColor(platformStyle->ShadowColor());
-        walletFrameShadow->setXOffset(-9.0);
+        walletFrameShadow->setBlurRadius(50);
+        walletFrameShadow->setColor(COLOR_WALLETFRAME_SHADOW);
+        walletFrameShadow->setXOffset(-8.0);
         walletFrameShadow->setYOffset(0);
         mainWalletWidget->setGraphicsEffect(walletFrameShadow);
 
         QString widgetBackgroundSytleSheet = QString(".QWidget{background-color: %1}").arg(platformStyle->TopWidgetBackGroundColor().name());
 
         // Set the headers widget options
-        headerWidget->setContentsMargins(0,0,0,0);
+        headerWidget->setContentsMargins(0,0,0,50);
         headerWidget->setStyleSheet(widgetBackgroundSytleSheet);
         headerWidget->setGraphicsEffect(GUIUtil::getShadowEffect());
-        headerWidget->setFixedHeight(0);
+        headerWidget->setFixedHeight(75);
 
         QFont currentMarketFont;
-        currentMarketFont.setFamily("Arial");
+        currentMarketFont.setFamily("Open Sans");
+        currentMarketFont.setWeight(QFont::Weight::Normal);
         currentMarketFont.setLetterSpacing(QFont::SpacingType::AbsoluteSpacing, -0.6);
         currentMarketFont.setPixelSize(18);
 
@@ -658,7 +692,7 @@ void RPGGUI::createToolBars()
         labelCurrentPrice->setContentsMargins(25,0,0,0);
         labelCurrentPrice->setFixedHeight(75);
         labelCurrentPrice->setAlignment(Qt::AlignVCenter);
-        labelCurrentPrice->setStyleSheet(currentPriceStyleSheet.arg("#4960ad"));
+        labelCurrentPrice->setStyleSheet(currentPriceStyleSheet.arg(COLOR_LABELS.name()));
         labelCurrentPrice->setFont(currentMarketFont);
 
         QLabel* labelBtcRPG = new QLabel();
@@ -718,7 +752,7 @@ void RPGGUI::createToolBars()
                     if (!list.isEmpty()) {
                         double next = list.first().toDouble(&ok);
                         if (!ok) {
-                            labelCurrentPrice->setStyleSheet(currentPriceStyleSheet.arg("#4960ad"));
+                            labelCurrentPrice->setStyleSheet(currentPriceStyleSheet.arg(COLOR_LABELS.name()));
                             labelCurrentPrice->setText("");
                         } else {
                             double current = labelCurrentPrice->text().toDouble(&ok);
@@ -730,7 +764,7 @@ void RPGGUI::createToolBars()
                                 else if (next > current)
                                     labelCurrentPrice->setStyleSheet(currentPriceStyleSheet.arg("green"));
                                 else
-                                    labelCurrentPrice->setStyleSheet(currentPriceStyleSheet.arg("#4960ad"));
+                                    labelCurrentPrice->setStyleSheet(currentPriceStyleSheet.arg(COLOR_LABELS.name()));
                             }
                             labelCurrentPrice->setText(QString("%1").arg(QString().setNum(next, 'f', 8)));
                             labelCurrentPrice->setToolTip(tr("Brought to you by binance.com"));
@@ -743,6 +777,7 @@ void RPGGUI::createToolBars()
         connect(pricingTimer, SIGNAL(timeout()), this, SLOT(getPriceInfo()));
         pricingTimer->start(10000);
         getPriceInfo();
+        // RPG END 
 */
     }
 }
@@ -1081,12 +1116,6 @@ void RPGGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVerific
             modalOverlay->tipUpdate(count, blockDate, nVerificationProgress);
     }
 
-#ifdef ENABLE_WALLET
-    if(walletFrame)
-        {
-            walletFrame->displayAssetInfo();
-        }
-#endif // ENABLE_WALLET
     if (!clientModel)
         return;
 
