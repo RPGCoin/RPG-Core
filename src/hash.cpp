@@ -5,8 +5,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "hash.h"
-#include "crypto/common.h"
-#include "crypto/hmac_sha512.h"
+#include "algo/common.h"
+#include "algo/hmac_sha512.h"
 #include "pubkey.h"
 
 //TODO remove these

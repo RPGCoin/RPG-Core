@@ -6,8 +6,8 @@
 
 #include "crypter.h"
 
-#include "crypto/aes.h"
-#include "crypto/sha512.h"
+#include "algo/aes.h"
+#include "algo/sha512.h"
 #include "script/script.h"
 #include "script/standard.h"
 #include "util.h"

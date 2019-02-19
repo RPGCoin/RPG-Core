@@ -7,9 +7,9 @@
 #include "interpreter.h"
 
 #include "primitives/transaction.h"
-#include "crypto/ripemd160.h"
-#include "crypto/sha1.h"
-#include "crypto/sha256.h"
+#include "algo/ripemd160.h"
+#include "algo/sha1.h"
+#include "algo/sha256.h"
 #include "pubkey.h"
 #include "script/script.h"
 

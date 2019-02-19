@@ -8,15 +8,15 @@
 #define RPG_HASH_H
 #include <iostream>
 #include <chrono>
-#include "crypto/ripemd160.h"
-#include "crypto/sha256.h"
+#include "algo/ripemd160.h"
+#include "algo/sha256.h"
 #include "prevector.h"
 #include "serialize.h"
 #include "uint256.h"
 #include "version.h"
 
 extern "C" {
-#include "crypto/sph_sha2.h"
+#include "algo/sph_sha2.h"
 }
 #include <vector>
 

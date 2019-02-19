@@ -4,14 +4,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "crypto/aes.h"
-#include "crypto/chacha20.h"
-#include "crypto/ripemd160.h"
-#include "crypto/sha1.h"
-#include "crypto/sha256.h"
-#include "crypto/sha512.h"
-#include "crypto/hmac_sha256.h"
-#include "crypto/hmac_sha512.h"
+#include "algo/aes.h"
+#include "algo/chacha20.h"
+#include "algo/ripemd160.h"
+#include "algo/sha1.h"
+#include "algo/sha256.h"
+#include "algo/sha512.h"
+#include "algo/hmac_sha256.h"
+#include "algo/hmac_sha512.h"
 #include "random.h"
 #include "utilstrencodings.h"
 #include "test/test_rpg.h"

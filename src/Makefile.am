@@ -30,7 +30,7 @@ LIBRPG_COMMON=librpg_common.a
 LIBRPG_CONSENSUS=librpg_consensus.a
 LIBRPG_CLI=librpg_cli.a
 LIBRPG_UTIL=librpg_util.a
-LIBRPG_CRYPTO=crypto/librpg_crypto.a
+LIBRPG_CRYPTO=algo/librpg_crypto.a
 LIBRPGQT=qt/librpgqt.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
 
@@ -316,28 +316,28 @@ librpg_wallet_a_SOURCES = \
 crypto_librpg_crypto_a_CPPFLAGS = $(AM_CPPFLAGS)
 crypto_librpg_crypto_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 crypto_librpg_crypto_a_SOURCES = \
-  crypto/aes.cpp \
-  crypto/aes.h \
-  crypto/chacha20.cpp \
-  crypto/chacha20.h \
-  crypto/common.h \
-  crypto/hmac_sha256.cpp \
-  crypto/hmac_sha256.h \
-  crypto/hmac_sha512.cpp \
-  crypto/hmac_sha512.h \
-  crypto/ripemd160.cpp \
-  crypto/ripemd160.h \
-  crypto/sha1.cpp \
-  crypto/sha1.h \
-  crypto/sha256.cpp \
-  crypto/sha256.h \
-  crypto/sha512.cpp \
-  crypto/sha512.h \
-  crypto/sph_sha2.h \
-  crypto/sph_types.h
+  algo/aes.cpp \
+  algo/aes.h \
+  algo/chacha20.cpp \
+  algo/chacha20.h \
+  algo/common.h \
+  algo/hmac_sha256.cpp \
+  algo/hmac_sha256.h \
+  algo/hmac_sha512.cpp \
+  algo/hmac_sha512.h \
+  algo/ripemd160.cpp \
+  algo/ripemd160.h \
+  algo/sha1.cpp \
+  algo/sha1.h \
+  algo/sha256.cpp \
+  algo/sha256.h \
+  algo/sha512.cpp \
+  algo/sha512.h \
+  algo/sph_sha2.h \
+  algo/sph_types.h
 
 if USE_ASM
-crypto_librpg_crypto_a_SOURCES += crypto/sha256_sse4.cpp
+crypto_librpg_crypto_a_SOURCES += algo/sha256_sse4.cpp
 endif
 
 # consensus: shared between all executables that validate any consensus rules.
@@ -523,18 +523,18 @@ librpgconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 endif
 #
 
-CTAES_DIST =  crypto/ctaes/bench.c
-CTAES_DIST += crypto/ctaes/ctaes.c
-CTAES_DIST += crypto/ctaes/ctaes.h
-CTAES_DIST += crypto/ctaes/README.md
-CTAES_DIST += crypto/ctaes/test.c
+CTAES_DIST =  algo/ctaes/bench.c
+CTAES_DIST += algo/ctaes/ctaes.c
+CTAES_DIST += algo/ctaes/ctaes.h
+CTAES_DIST += algo/ctaes/README.md
+CTAES_DIST += algo/ctaes/test.c
 
 CLEANFILES = $(EXTRA_LIBRARIES)
 
 CLEANFILES += *.gcda *.gcno
 CLEANFILES += compat/*.gcda compat/*.gcno
 CLEANFILES += consensus/*.gcda consensus/*.gcno
-CLEANFILES += crypto/*.gcda crypto/*.gcno
+CLEANFILES += algo/*.gcda algo/*.gcno
 CLEANFILES += policy/*.gcda policy/*.gcno
 CLEANFILES += primitives/*.gcda primitives/*.gcno
 CLEANFILES += script/*.gcda script/*.gcno

@@ -100,7 +100,7 @@ maintained:
 * for `src/secp256k1`: https://github.com/rpg-core/secp256k1.git (branch master)
 * for `src/leveldb`: https://github.com/rpg-core/leveldb.git (branch rpg-fork)
 * for `src/univalue`: https://github.com/rpg-core/univalue.git (branch master)
-* for `src/crypto/ctaes`: https://github.com/rpg-core/ctaes.git (branch master)
+* for `src/algo/ctaes`: https://github.com/rpg-core/ctaes.git (branch master)
 
 Usage: `git-subtree-check.sh DIR (COMMIT)`
 
