@@ -497,7 +497,7 @@ Current subtrees include:
 - src/libsecp256k1
   - Upstream at https://github.com/rpg-core/secp256k1/ ; actively maintaned by Core contributors.
 
-- src/crypto/ctaes
+- src/algo/ctaes
   - Upstream at https://github.com/rpg-core/ctaes ; actively maintained by Core contributors.
 
 - src/univalue

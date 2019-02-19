@@ -32,7 +32,7 @@ EXCLUDE = [
     # other external copyrights:
     'src/tinyformat.h',
     'src/leveldb/util/env_win.cc',
-    'src/crypto/ctaes/bench.c',
+    'src/algo/ctaes/bench.c',
     'test/functional/test_framework/bignum.py',
     # python init:
     '*__init__.py',

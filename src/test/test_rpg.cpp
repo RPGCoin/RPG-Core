@@ -7,7 +7,7 @@
 #include "chainparams.h"
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
-#include "crypto/sha256.h"
+#include "algo/sha256.h"
 #include "fs.h"
 #include "key.h"
 #include "validation.h"

@@ -260,7 +260,7 @@ static int secp256k1_scalar_cond_negate(secp256k1_scalar *r, int flag) {
 }
 
 
-/* Inspired by the macros in OpenSSL's crypto/bn/asm/x86_64-gcc.c. */
+/* Inspired by the macros in OpenSSL's algo/bn/asm/x86_64-gcc.c. */
 
 /** Add a*b to the number defined by (c0,c1,c2). c2 must never overflow. */
 #define muladd(a,b) { \
