@@ -226,7 +226,7 @@ public:
     }
 
     CReissueAsset(const std::string& strAssetName, const CAmount& nAmount, const int& nUnits, const int& nReissuable, const std::string& strIPFSHash);
-    bool IsValid(std::string& strError, CAssetsCache& assetCache) const;
+    bool IsValid(std::string& strError, CAssetsCache& assetCache, bool fForceCheckPrimaryAssetExists = true) const;
     void ConstructTransaction(CScript& script) const;
     bool IsNull() const;
 };
@@ -446,6 +446,10 @@ public:
         Clear();
     }
 
+    size_t MaxSize() const
+    {
+        return maxSize;
+    }
 
     void SetSize(const size_t size)
     {

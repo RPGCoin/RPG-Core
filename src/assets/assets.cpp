@@ -961,39 +961,39 @@ CReissueAsset::CReissueAsset(const std::string &strAssetName, const CAmount &nAm
     this->nUnits = nUnits;
 }
 
-bool CReissueAsset::IsValid(std::string &strError, CAssetsCache& assetCache) const
+bool CReissueAsset::IsValid(std::string &strError, CAssetsCache& assetCache, bool fForceCheckPrimaryAssetExists) const {
 {
     strError = "";
-
+    if (fForceCheckPrimaryAssetExists) {
     CNewAsset asset;
-    if (!assetCache.GetAssetMetaDataIfExists(this->strName, asset)) {
+        if (!assetCache.GetAssetMetaDataIfExists(this->strName, asset)) {
         strError = _("Unable to reissue asset: asset_name '") + strName + _("' doesn't exist in the database");
         return false;
-    }
+        }
 
-    if (!asset.nReissuable) {
+        if (!asset.nReissuable) {
         // Check to make sure the asset can be reissued
         strError = _("Unable to reissue asset: reissuable is set to false");
         return false;
-    }
+        }
 
-    if (asset.nAmount + this->nAmount > MAX_MONEY) {
+        if (asset.nAmount + this->nAmount > MAX_MONEY) {
         strError = _("Unable to reissue asset: asset_name '") + strName +
                    _("' the amount trying to reissue is to large");
         return false;
-    }
+        }
 
-    if (nUnits > MAX_UNIT || nUnits < -1) {
-        strError = _("Unable to reissue asset: unit must be less than 8 and greater than -1");
-        LogPrintf("Found bad units: %u\n", nUnits);
-        return false;
-    }
-
-    if (!CheckAmountWithUnits(nAmount, asset.units)) {
+        if (!CheckAmountWithUnits(nAmount, asset.units)) {
         strError = _("Unable to reissue asset: amount must be divisible by the smaller unit assigned to the asset");
         return false;
+        }
+        
+        if (nUnits < asset.units && nUnits != -1) {
+        strError = _("Unable to reissue asset: unit must be larger than current unit selection");
+        return false;
+        }
     }
-
+    
     if (strIPFSHash != "" && strIPFSHash.size() != 34) {
         strError = _("Invalid parameter: ipfs_hash must be 34 bytes.");
         return false;
@@ -1008,12 +1008,13 @@ bool CReissueAsset::IsValid(std::string &strError, CAssetsCache& assetCache) con
         strError = _("Unable to reissue asset: amount must be 0 or larger");
         return false;
     }
-
-    if (nUnits < asset.units && nUnits != -1) {
-        strError = _("Unable to reissue asset: unit must be larger than current unit selection");
+    
+    if (nUnits > MAX_UNIT || nUnits < -1) {
+        strError = _("Unable to reissue asset: unit must be less than 8 and greater than -1");
+        LogPrintf("Found bad units: %u\n", nUnits);
         return false;
     }
-
+    
     return true;
 }
 
@@ -2109,27 +2110,28 @@ bool IsScriptTransferAsset(const CScript& scriptPubKey, int& nStartingIndex)
 
 void UpdatePossibleAssets()
 {
-    if (passets) {
-        for (auto item : passets->setPossiblyMineRemove) {
+    auto currentActiveAssetCache = GetCurrentAssetCache();
+    if (currentActiveAssetCache) {
+        for (auto item : currentActiveAssetCache->setPossiblyMineRemove) {
             // If the CTxOut is mine add it to the list of unspent outpoints
             if (vpwallets[0]->IsMine(item.txOut) == ISMINE_SPENDABLE) {
-                if (!passets->TrySpendCoin(item.out, item.txOut)) // Boolean true means only change the in memory data. We will want to save at the same time that RPG coin saves its cache
+                if (!currentActiveAssetCache->TrySpendCoin(item.out, item.txOut)) // Boolean true means only change the in memory data. We will want to save at the same time that RPG coin saves its cache
                     error("%s: Failed to add an asset I own to my Unspent Asset Database. asset %s",
                           __func__, item.assetName);
             }
         }
 
-        for (auto item : passets->setPossiblyMineAdd) {
+        for (auto item : currentActiveAssetCache->setPossiblyMineAdd) {
             // If the CTxOut is mine add it to the list of unspent outpoints
             if (vpwallets[0]->IsMine(item.txOut) == ISMINE_SPENDABLE) {
-                if (!passets->AddToMyUnspentOutPoints(item.assetName, item.out)) // Boolean true means only change the in memory data. We will want to save at the same time that RPG coin saves its cache
+                if (!currentActiveAssetCache->AddToMyUnspentOutPoints(item.assetName, item.out)) // Boolean true means only change the in memory data. We will want to save at the same time that RPG coin saves its cache
                     error("%s: Failed to add an asset I own to my Unspent Asset Database. asset %s",
                                  __func__, item.assetName);
             }
         }
 
         std::vector<std::pair<std::string, COutPoint> > toRemove;
-        for (auto item : passets->mapMyUnspentAssets) {
+        for (auto item : currentActiveAssetCache->mapMyUnspentAssets) {
             for (auto out : item.second) {
                 if (pcoinsTip->AccessCoin(out).IsSpent())
                     toRemove.emplace_back(std::make_pair(item.first, out));
@@ -2137,7 +2139,7 @@ void UpdatePossibleAssets()
         }
 
         for (auto remove : toRemove) {
-            passets->mapMyUnspentAssets.at(remove.first).erase(remove.second);
+            currentActiveAssetCache->mapMyUnspentAssets.at(remove.first).erase(remove.second);
         }
 
     }
@@ -2216,6 +2218,7 @@ bool CAssetsCache::GetAssetMetaDataIfExists(const std::string &name, CNewAsset &
 
     // Check the dirty caches first and see if it was recently added or removed
     if (setNewAssetsToRemove.count(cachedAsset)) {
+        LogPrintf("%s : Found in new assets to Remove - Returning False\n", __func__);
         return false;
     }
 
@@ -2251,7 +2254,7 @@ bool CAssetsCache::GetAssetMetaDataIfExists(const std::string &name, CNewAsset &
             return true;
         }
     }
-
+    LogPrintf("%s : Didn't find asset meta data anywhere. Returning False\n", __func__);
     return false;
 }
 
@@ -2359,10 +2362,11 @@ void GetAllMyAssets(CWallet* pwallet, std::vector<std::string>& names, int nMinC
 
 void GetAllMyAssetsFromCache(std::vector<std::string>& names)
 {
-    if (!passets)
+    auto currentActiveAssetCache = GetCurrentAssetCache();
+    if (!currentActiveAssetCache)
         return;
 
-    for (auto owned : passets->mapMyUnspentAssets)
+    for (auto owned : currentActiveAssetCache->mapMyUnspentAssets)
         names.emplace_back(owned.first);
 
 }
@@ -2553,11 +2557,11 @@ bool CreateAssetTransaction(CWallet* pwallet, CCoinControl& coinControl, const C
 bool CreateAssetTransaction(CWallet* pwallet, CCoinControl& coinControl, const std::vector<CNewAsset> assets, const std::string& address, std::pair<int, std::string>& error, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRequired)
 {
     std::string change_address = EncodeDestination(coinControl.destChange);
-
+    auto currentActiveAssetCache = GetCurrentAssetCache();
     // Validate the assets data
     std::string strError;
     for (auto asset : assets) {
-        if (!asset.IsValid(strError, *passets)) {
+        if (!asset.IsValid(strError, *currentActiveAssetCache)) {
             error = std::make_pair(RPC_INVALID_PARAMETER, strError);
             return false;
         }
@@ -2700,8 +2704,8 @@ bool CreateReissueAssetTransaction(CWallet* pwallet, CCoinControl& coinControl, 
         return false;
     }
 
-    // passets and passetsCache need to be initialized
-    if (!passets) {
+    auto currentActiveAssetCache = GetCurrentAssetCache();
+    if (!currentActiveAssetCache) {
         error = std::make_pair(RPC_DATABASE_ERROR, std::string("passets isn't initialized"));
         return false;
     }
@@ -2713,7 +2717,7 @@ bool CreateReissueAssetTransaction(CWallet* pwallet, CCoinControl& coinControl, 
     }
 
     std::string strError;
-    if (!reissueAsset.IsValid(strError, *passets)) {
+    if (!reissueAsset.IsValid(strError, *currentActiveAssetCache)) {
         error = std::make_pair(RPC_VERIFY_ERROR,
                                std::string("Failed to create reissue asset object. Error: ") + strError);
         return false;
@@ -2800,7 +2804,8 @@ bool CreateTransferAssetTransaction(CWallet* pwallet, const CCoinControl& coinCo
             return false;
         }
 
-        if (!passets) {
+        auto currentActiveAssetCache = GetCurrentAssetCache();
+        if (!currentActiveAssetCache) {
             error = std::make_pair(RPC_DATABASE_ERROR, std::string("passets isn't initialized"));
             return false;
         }

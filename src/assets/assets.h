@@ -167,6 +167,10 @@ public :
 
         // Changed Outpoints Caches
         this->setChangeOwnedOutPoints = cache.setChangeOwnedOutPoints;
+        
+        // Copy sets of possibilymine
+        this->setPossiblyMineAdd = cache.setPossiblyMineAdd;
+        this->setPossiblyMineRemove = cache.setPossiblyMineRemove;
     }
 
     CAssetsCache& operator=(const CAssetsCache& cache)
@@ -198,7 +202,11 @@ public :
 
         // Changed Outpoints Caches
         this->setChangeOwnedOutPoints = cache.setChangeOwnedOutPoints;
-
+        
+        // Copy sets of possibilymine
+        this->setPossiblyMineAdd = cache.setPossiblyMineAdd;
+        this->setPossiblyMineRemove = cache.setPossiblyMineRemove;
+        
         return *this;
     }
 
