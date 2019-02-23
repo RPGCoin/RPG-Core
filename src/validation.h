@@ -111,6 +111,8 @@ static const unsigned int BLOCK_DOWNLOAD_WINDOW = 1024;
 static const unsigned int DATABASE_WRITE_INTERVAL = 60 * 60;
 /** Time to wait (in seconds) between flushing chainstate to disk. */
 static const unsigned int DATABASE_FLUSH_INTERVAL = 24 * 60 * 60;
+/** Time to wait (in seconds) between flushing to database if in speedy sync interval */
+static const unsigned int DATABASE_FLUSH_INTERVAL_SPEEDY = 60 * 10;
 /** Maximum length of reject messages. */
 static const unsigned int MAX_REJECT_MESSAGE_LENGTH = 111;
 /** Average delay between local address broadcasts in seconds. */
@@ -140,6 +142,7 @@ static const int64_t MAX_FEE_ESTIMATION_TIP_AGE = 3 * 60 * 60;
 static const bool DEFAULT_PERMIT_BAREMULTISIG = true;
 static const bool DEFAULT_CHECKPOINTS_ENABLED = true;
 static const bool DEFAULT_TXINDEX = false;
+static const bool DEFAULT_ASSETINDEX = false;
 static const bool DEFAULT_ADDRESSINDEX = false;
 static const bool DEFAULT_TIMESTAMPINDEX = false;
 static const bool DEFAULT_SPENTINDEX = false;
@@ -185,6 +188,7 @@ extern std::atomic_bool fImporting;
 extern std::atomic_bool fReindex;
 extern int nScriptCheckThreads;
 extern bool fTxIndex;
+extern bool fAssetIndex;
 extern bool fAddressIndex;
 extern bool fSpentIndex;
 extern bool fTimestampIndex;
@@ -290,6 +294,8 @@ void UnloadBlockIndex();
 void ThreadScriptCheck();
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();
+/** Check whether we need Initial Sync Speedup with Assets */
+bool IsInitialSyncSpeedUp();
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
 bool GetTransaction(const uint256 &hash, CTransactionRef &tx, const Consensus::Params& params, uint256 &hashBlock, bool fAllowSlow = false);
 /** Find the best known block, and make it the tip of the block chain */
@@ -488,8 +494,11 @@ extern CBlockTreeDB *pblocktree;
 /** RPG START */
 /** Global variable that point to the active assets database (protexted by cs_main) */
 extern CAssetsDB *passetsdb;
-/** Global variable that point to the active assets (protexted by cs_main) */
+/** Global variables that point to the active assets (protexted by cs_main) */
 extern CAssetsCache *passets;
+extern CAssetsCache *tmpAssetCache;
+/** Global Variable pointing to current blockcount */
+extern int nBlockCount;
 /** Global variable that point to the assets LRU Cache (protexted by cs_main) */
 extern CLRUCache<std::string, CDatabasedAssetData> *passetsCache;
 /** RPG END */
@@ -529,6 +538,9 @@ bool LoadMempool();
 bool AreAssetsDeployed();
 
 bool IsDGWActive(unsigned int nBlockNumber);
+extern bool fSwitchFromInitialBlockDownload;
+extern bool fFirstStart;
+CAssetsCache* GetCurrentAssetCache();
 /** RPG END */
 
 #endif // RPG_VALIDATION_H

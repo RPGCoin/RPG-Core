@@ -80,6 +80,7 @@ int nScriptCheckThreads = 0;
 std::atomic_bool fImporting(false);
 std::atomic_bool fReindex(false);
 bool fTxIndex = false;
+bool fAssetIndex = false;
 bool fAddressIndex = false;
 bool fTimestampIndex = false;
 bool fSpentIndex = false;
@@ -102,6 +103,8 @@ CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE;
 
 CBlockPolicyEstimator feeEstimator;
 CTxMemPool mempool(&feeEstimator);
+
+int nBlockCount = 0;
 
 static void CheckBlockIndex(const Consensus::Params& consensusParams);
 
@@ -199,6 +202,8 @@ CBlockTreeDB *pblocktree = nullptr;
 
 CAssetsDB *passetsdb = nullptr;
 CAssetsCache *passets = nullptr;
+
+CAssetsCache *tmpAssetCache = nullptr;
 CLRUCache<std::string, CDatabasedAssetData> *passetsCache = nullptr;
 
 enum FlushStateMode {
@@ -473,8 +478,8 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
     AssertLockHeld(cs_main);
     if (pfMissingInputs)
         *pfMissingInputs = false;
-
-    if (!CheckTransaction(tx, state, passets, true, true))
+    auto currentActiveAssetCache = GetCurrentAssetCache();
+    if (!CheckTransaction(tx, state, currentActiveAssetCache, true, true))
         return false; // state filled in by CheckTransaction
 
     // Coinbase is only valid in a block, not as a loose transaction
@@ -1224,6 +1229,37 @@ bool IsInitialBlockDownload()
     }
 //    LogPrintf("Leaving InitialBlockDownload (latching to false)\n");
     latchToFalse.store(true, std::memory_order_relaxed);
+    return false;
+}
+bool IsInitialSyncSpeedUp()
+{
+    static std::atomic<bool> syncLatchToFalse{false};
+    if (syncLatchToFalse.load(std::memory_order_relaxed))
+        return false;
+    if (fImporting || fReindex)
+    {
+        LogPrintf("IsInitialBlockDownload (importing or reindex)\n");
+        return true;
+    }
+    if (chainActive.Tip() == nullptr)
+    {
+        LogPrintf("IsInitialBlockDownload (tip is null)\n")
+        return true;
+    }
+    if (chainActive.Tip()->nChainWork < nMinimumChainWork)
+    {
+        LogPrintf("IsInitialBlockDownload (min chain work)\n");
+  		LogPrintf("Work found: %s", chainActive.Tip()->nChainWork.GetHex(), "\n");
+   		LogPrintf("Work needed: %s", nMinimumChainWork.GetHex(), "\n");
+        return true;
+    }
+    if (chainActive.Tip()->GetBlockTime() < (GetTime() - 60 * 60))
+    {
+        LogPrintf("%s: (tip age): %d\n", __func__, nMaxTipAge);
+        return true;
+    }
+    LogPrintf("Leaving InitialBlockDownload (latching to false)\n");
+    syncLatchToFalse.store(true, std::memory_order_relaxed);
     return false;
 }
 
@@ -2611,8 +2647,20 @@ bool static FlushStateToDisk(const CChainParams& chainparams, CValidationState &
         if (nLastSetChain == 0) {
             nLastSetChain = nNow;
         }
+
+        // Get the size of the memory used by the asset cache.
+        int64_t assetDynamicSize = 0;
+        int64_t assetDirtyCacheSize = 0;
+        if (AreAssetsDeployed()) {
+            auto currentActiveAssetCache = GetCurrentAssetCache();
+            if (currentActiveAssetCache) {
+                assetDynamicSize = currentActiveAssetCache->DynamicMemoryUsage();
+                assetDirtyCacheSize = currentActiveAssetCache->GetCacheSize();
+            }
+        }
+
         int64_t nMempoolSizeMax = gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
-        int64_t cacheSize = pcoinsTip->DynamicMemoryUsage();
+        int64_t cacheSize = pcoinsTip->DynamicMemoryUsage() + assetDynamicSize + assetDirtyCacheSize;
         int64_t nTotalSpace = nCoinCacheUsage + std::max<int64_t>(nMempoolSizeMax - nMempoolUsage, 0);
         // The cache is large and we're within 10% and 10 MiB of the limit, but we have time now (not in the middle of a block processing).
         bool fCacheLarge = mode == FLUSH_STATE_PERIODIC && cacheSize > std::max((9 * nTotalSpace) / 10, nTotalSpace - MAX_BLOCK_COINSDB_USAGE * 1024 * 1024);
@@ -2624,6 +2672,10 @@ bool static FlushStateToDisk(const CChainParams& chainparams, CValidationState &
         bool fPeriodicFlush = mode == FLUSH_STATE_PERIODIC && nNow > nLastFlush + (int64_t)DATABASE_FLUSH_INTERVAL * 1000000;
         // Combine all conditions that result in a full cache flush.
         fDoFullFlush = (mode == FLUSH_STATE_ALWAYS) || fCacheLarge || fCacheCritical || fPeriodicFlush || fFlushForPrune;
+        if (!fDoFullFlush && IsInitialSyncSpeedUp() && nNow > nLastFlush + (int64_t) DATABASE_FLUSH_INTERVAL_SPEEDY * 1000000) {
+            LogPrintf("Flushing to database sooner for speedy sync\n");
+            fDoFullFlush = true;
+        }
         // Write blocks and block index to disk.
         if (fDoFullFlush || fPeriodicWrite) {
             // Depend on nMinDiskSpace to ensure we can write block index
@@ -2657,21 +2709,12 @@ bool static FlushStateToDisk(const CChainParams& chainparams, CValidationState &
         // Flush best chain related state. This can only be done if the blocks / block index write was also done.
         if (fDoFullFlush) {
 
-            /** RPG START */
-
-            size_t assetsSize = 0;
-            if (AreAssetsDeployed()) {
-                if (passets)
-                    assetsSize = passets->GetCacheSize() * 2;
-            }
-            /** RPG END */
-
             // Typical Coin structures on disk are around 48 bytes in size.
             // Pushing a new one to the database can cause it to be written
             // twice (once in the log, and once in the tables). This is already
             // an overestimation, as most will delete an existing entry or
             // overwrite one. Still, use a conservative safety factor of 2.
-            if (!CheckDiskSpace((48 * 2 * 2 * pcoinsTip->GetCacheSize()) + assetsSize)) /** RPG START */ /** RPG END */
+            if (!CheckDiskSpace((48 * 2 * 2 * pcoinsTip->GetCacheSize()) + assetDirtyCacheSize * 2)) /** RPG START */ /** RPG END */
                 return state.Error("out of disk space");
 
             // Flush the chainstate (which may refer to block index entries).
@@ -2682,8 +2725,9 @@ bool static FlushStateToDisk(const CChainParams& chainparams, CValidationState &
             // Flush the assetstate
             if (AreAssetsDeployed()) {
                 // Flush the assetstate
-                if (passets) {
-                    if (!passets->Flush(false, true))
+                auto currentActiveAssetCache = GetCurrentAssetCache();
+                if (currentActiveAssetCache) {
+                    if (!currentActiveAssetCache->Flush(false, true))
                         return AbortNode(state, "Failed to write to asset database");
                 }
             }
@@ -2807,7 +2851,8 @@ bool static DisconnectTip(CValidationState& state, const CChainParams& chainpara
     {
         CCoinsViewCache view(pcoinsTip);
 
-        CAssetsCache assetCache(*passets);
+        auto currentActiveAssetCache = GetCurrentAssetCache();
+        CAssetsCache assetCache(*currentActiveAssetCache);
 
         assert(view.GetBestBlock() == pindexDelete->GetBlockHash());
         if (DisconnectBlock(block, pindexDelete, view, &assetCache) != DISCONNECT_OK)
@@ -2939,6 +2984,7 @@ bool static ConnectTip(CValidationState& state, const CChainParams& chainparams,
     // Apply the block atomically to the chain state.
     int64_t nTime2 = GetTimeMicros(); nTimeReadFromDisk += nTime2 - nTime1;
     int64_t nTime3;
+    int64_t nTimeAssetsFlush;
     LogPrint(BCLog::BENCH, "  - Load block from disk: %.2fms [%.2fs]\n", (nTime2 - nTime1) * MILLI, nTimeReadFromDisk * MICRO);
 
     /** RPG START */
@@ -2949,23 +2995,35 @@ bool static ConnectTip(CValidationState& state, const CChainParams& chainparams,
 
     {
         CCoinsViewCache view(pcoinsTip);
-
+        int64_t nTimeStartCacheCopy = GetTimeMicros();
         /** RPG START */
-        CAssetsCache assetCache(*passets);
-        prevNewAssets = assetCache.setNewAssetsToAdd; // List of newly cached assets before block is connected
+        CAssetsCache* assetCache = nullptr;
+        bool fIsInitial = IsInitialSyncSpeedUp();
+        if (!fIsInitial) {
+            assetCache = new CAssetsCache(*passets);
+        } else {
+            nBlockCount++;
+        }
+        auto pt = fIsInitial ? GetCurrentAssetCache() : assetCache;
+        prevNewAssets = pt->setNewAssetsToAdd; // List of newly cached assets before block is connected
         /** RPG END */
 
-        bool rv = ConnectBlock(blockConnecting, state, pindexNew, view, chainparams, &assetCache);
-        GetMainSignals().BlockChecked(blockConnecting, state);
+        int64_t nTimeConnectStart = GetTimeMicros();
+        LogPrint(BCLog::BENCH, "  - Copy Cache Time: %.2fms [%.2fs (%.2fms/blk)]\n", (nTimeConnectStart - nTimeStartCacheCopy) * MILLI, nTimeConnectTotal * MICRO, nTimeConnectTotal * MILLI / nBlocksTotal, "\n");
+        bool rv = ConnectBlock(blockConnecting, state, pindexNew, view, chainparams, pt); GetMainSignals().BlockChecked(blockConnecting, state);
         if (!rv) {
             if (state.IsInvalid())
                 InvalidBlockFound(pindexNew, state);
+            if (assetCache)
+                delete assetCache;
             return error("ConnectTip(): ConnectBlock %s failed", pindexNew->GetBlockHash().ToString());
         }
+        int64_t nTimeConnectDone = GetTimeMicros();
+        LogPrint(BCLog::BENCH, "  - Connect Block only time: %.2fms [%.2fs (%.2fms/blk)]\n", (nTimeConnectDone - nTimeConnectStart) * MILLI, nTimeConnectTotal * MICRO, nTimeConnectTotal * MILLI / nBlocksTotal, "\n");
 
         /** RPG START */
         // Get the newly created assets, from the connectblock assetCache
-        afterNewAsset = assetCache.setNewAssetsToAdd;
+        afterNewAsset = pt->setNewAssetsToAdd;
         for (auto it : prevNewAssets) {
             if (afterNewAsset.count(it))
                 afterNewAsset.erase(it);
@@ -2984,14 +3042,20 @@ bool static ConnectTip(CValidationState& state, const CChainParams& chainparams,
         LogPrint(BCLog::BENCH, "  - Connect total: %.2fms [%.2fs (%.2fms/blk)]\n", (nTime3 - nTime2) * MILLI, nTimeConnectTotal * MICRO, nTimeConnectTotal * MILLI / nBlocksTotal);
         bool flushed = view.Flush();
         assert(flushed);
-
+        
+        nTimeAssetsFlush = GetTimeMicros();
         /** RPG START */
-        bool assetFlushed = assetCache.Flush(true);
-        assert(assetFlushed);
+        if ((!fIsInitial || nBlockCount % 100 == 0) && pt) {
+            nBlockCount = 0;
+            passets->Copy(*pt);
+        }
+        if (assetCache)
+            delete assetCache;
         /** RPG END */
     }
     int64_t nTime4 = GetTimeMicros(); nTimeFlush += nTime4 - nTime3;
-    LogPrint(BCLog::BENCH, "  - Flush: %.2fms [%.2fs (%.2fms/blk)]\n", (nTime4 - nTime3) * MILLI, nTimeFlush * MICRO, nTimeFlush * MILLI / nBlocksTotal);
+    LogPrint(BCLog::BENCH, "  - Flush RPG: %.2fms [%.2fs (%.2fms/blk)]\n", (nTimeAssetsFlush - nTime3) * MILLI, nTimeFlush * MICRO, nTimeFlush * MILLI / nBlocksTotal, "\n");
+    LogPrint(BCLog::BENCH, "  - Flush Assets: %.2fms [%.2fs (%.2fms/blk)]\n", (nTime4 - nTimeAssetsFlush) * MILLI, nTimeFlush * MICRO, nTimeFlush * MILLI / nBlocksTotal, "\n");
     // Write the chain state to disk, if necessary.
     if (!FlushStateToDisk(chainparams, state, FLUSH_STATE_IF_NEEDED))
         return false;
@@ -3593,8 +3657,9 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-multiple", false, "more than one coinbase");
 
     // Check transactions
+    auto currentActiveAssetCache = GetCurrentAssetCache();
     for (const auto& tx : block.vtx)
-        if (!CheckTransaction(*tx, state, passets, true, false, fCheckAssetDuplicate, fForceDuplicateCheck))
+        if (!CheckTransaction(*tx, state, currentActiveAssetCache, true, false, fCheckAssetDuplicate, fForceDuplicateCheck))
             return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
                                  strprintf("Transaction check failed (tx hash %s) %s %s", tx->GetHash().ToString(), state.GetDebugMessage(), state.GetRejectReason()));
 
@@ -3955,8 +4020,9 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidation
     if (fNewBlock) *fNewBlock = true;
 
     // Dont force the CheckBLock asset duplciates when checking from this state
+    auto currentActiveAssetCache = GetCurrentAssetCache();
     if (!CheckBlock(block, state, chainparams.GetConsensus(), true, true, true, false) ||
-        !ContextualCheckBlock(block, state, chainparams.GetConsensus(), pindex->pprev, passets)) {
+        !ContextualCheckBlock(block, state, chainparams.GetConsensus(), pindex->pprev, currentActiveAssetCache)) {
         if (state.IsInvalid() && !state.CorruptionPossible()) {
             pindex->nStatus |= BLOCK_FAILED_VALID;
             setDirtyBlockIndex.insert(pindex);
@@ -4037,7 +4103,7 @@ bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams,
     indexDummy.nHeight = pindexPrev->nHeight + 1;
 
     /** RPG START */
-    CAssetsCache assetCache(*passets);
+    CAssetsCache assetCache = *currentActiveAssetCache();
     /** RPG END */
 
     // NOTE: CheckBlockHeader is called by CheckBlock
@@ -4367,6 +4433,10 @@ bool static LoadBlockIndexDB(const CChainParams& chainparams)
     pblocktree->ReadFlag("txindex", fTxIndex);
     LogPrintf("%s: transaction index %s\n", __func__, fTxIndex ? "enabled" : "disabled");
 
+    // Check whether we have an asset index
+    pblocktree->ReadFlag("assetindex", fAssetIndex);
+    LogPrintf("%s: asset index %s\n", __func__, fAssetIndex ? "enabled" : "disabled");
+
     // Check whether we have an address index
     pblocktree->ReadFlag("addressindex", fAddressIndex);
     LogPrintf("%s: address index %s\n", __func__, fAddressIndex ? "enabled" : "disabled");
@@ -4438,7 +4508,8 @@ bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview,
     CValidationState state;
     int reportDone = 0;
 
-    CAssetsCache assetCache(*passets);
+    auto currentActiveAssetCache = GetCurrentAssetCache();
+    CAssetsCache assetsCache(*currentActiveAssetCache);
     LogPrintf("[0%%]...");
     for (CBlockIndex* pindex = chainActive.Tip(); pindex && pindex->pprev; pindex = pindex->pprev)
     {
@@ -4542,7 +4613,8 @@ bool ReplayBlocks(const CChainParams& params, CCoinsView* view)
     LOCK(cs_main);
 
     CCoinsViewCache cache(view);
-    CAssetsCache assetsCache(*passets);
+    auto currentActiveAssetCache = GetCurrentAssetCache();
+    CAssetsCache assetsCache(*currentActiveAssetCache);
 
     std::vector<uint256> hashHeads = view->GetHeadBlocks();
     if (hashHeads.empty()) return true; // We're already in a consistent state.
@@ -4749,6 +4821,11 @@ bool LoadBlockIndex(const CChainParams& chainparams)
         fTxIndex = gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX);
         pblocktree->WriteFlag("txindex", fTxIndex);
         LogPrintf("%s: transaction index %s\n", __func__, fTxIndex ? "enabled" : "disabled");
+
+        // Use the provided setting for -assetindex in the new database
+        fAssetIndex = gArgs.GetBoolArg("-assetindex", DEFAULT_ASSETINDEX);
+        pblocktree->WriteFlag("assetindex", fAssetIndex);
+        LogPrintf("%s: asset index %s\n", __func__, fAssetIndex ? "enabled" : "disabled");
 
         // Use the provided setting for -addressindex in the new database
         fAddressIndex = gArgs.GetBoolArg("-addressindex", DEFAULT_ADDRESSINDEX);
@@ -5290,6 +5367,28 @@ bool AreAssetsDeployed() {
 
 bool IsDGWActive(unsigned int nBlockNumber) {
     return nBlockNumber >= Params().DGWActivationBlock();
+}
+
+bool fSwitchFromInitialBlockDownload = false;
+bool fFirstStart = true;
+
+CAssetsCache* GetCurrentAssetCache()
+{
+    if (fFirstStart) {
+        tmpAssetCache->Copy(*passets);
+        fFirstStart = false;
+    }
+
+    if (!fSwitchFromInitialBlockDownload) {
+        if (IsInitialSyncSpeedUp()) {
+            return tmpAssetCache;
+        } else {
+            passets->Copy(*tmpAssetCache);
+            fSwitchFromInitialBlockDownload = true;
+        }
+    }
+
+    return passets;
 }
 /** RPG END */
 
