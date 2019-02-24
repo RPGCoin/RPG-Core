@@ -20,7 +20,7 @@ static const char ADDRESS_ASSET_QUANTITY_FLAG = 'C';
 static const char MY_ASSET_FLAG = 'M';
 static const char BLOCK_ASSET_UNDO_DATA = 'U';
 static const char MEMPOOL_REISSUED_TX = 'Z';
-
+static size_t MAX_DATABASE_RESULTS = 50000;
 CAssetsDB::CAssetsDB(size_t nCacheSize, bool fMemory, bool fWipe) : CDBWrapper(GetDataDir() / "assets", nCacheSize, fMemory, fWipe) {
 }
 
@@ -146,9 +146,10 @@ bool CAssetsDB::LoadAssets()
         }
     }
 
-    std::unique_ptr<CDBIterator> pcursor3(NewIterator());
-    pcursor3->Seek(std::make_pair(ASSET_ADDRESS_QUANTITY_FLAG, std::make_pair(std::string(), std::string())));
-    // Load mapAssetAddressAmount
+ if (fAssetIndex) {
+        std::unique_ptr<CDBIterator> pcursor3(NewIterator());
+        pcursor3->Seek(std::make_pair(ASSET_ADDRESS_QUANTITY_FLAG, std::make_pair(std::string(), std::string())));
+  // Load mapAssetAddressAmount
     while (pcursor3->Valid()) {
         boost::this_thread::interruption_point();
         std::pair<char, std::pair<std::string, std::string> > key; // <Asset Name, Address> -> Quantity
@@ -245,13 +246,25 @@ bool CAssetsDB::AssetDir(std::vector<CDatabasedAssetData>& assets)
 {
     return CAssetsDB::AssetDir(assets, "*", MAX_SIZE, 0);
 }
-bool CAssetsDB::AddressDir(std::vector<std::pair<std::string, CAmount> >& vecAssetAmount, const std::string& address, const size_t count, const long start)
+bool CAssetsDB::AddressDir(std::vector<std::pair<std::string, CAmount> >& vecAssetAmount, int& totalEntries, const bool& fGetTotal, const std::string& address, const size_t count, const long start)
 {
     FlushStateToDisk();
 
     std::unique_ptr<CDBIterator> pcursor(NewIterator());
     pcursor->Seek(std::make_pair(ADDRESS_ASSET_QUANTITY_FLAG, std::make_pair(address, std::string())));
+    if (fGetTotal) {
+        totalEntries = 0;
+        while (pcursor->Valid()) {
+            boost::this_thread::interruption_point();
 
+            std::pair<char, std::pair<std::string, std::string> > key;
+            if (pcursor->GetKey(key) && key.first == ADDRESS_ASSET_QUANTITY_FLAG && key.second.first == address) {
+                totalEntries++;
+            }
+            pcursor->Next();
+        }
+        return true;
+    }
     size_t skip = 0;
     if (start >= 0) {
         skip = start;
@@ -277,7 +290,7 @@ bool CAssetsDB::AddressDir(std::vector<std::pair<std::string, CAmount> >& vecAss
     size_t offset = 0;
 
     // Load assets
-    while (pcursor->Valid() && loaded < count) {
+    while (pcursor->Valid() && loaded < count && loaded < MAX_DATABASE_RESULTS) {
         boost::this_thread::interruption_point();
 
         std::pair<char, std::pair<std::string, std::string> > key;
@@ -303,12 +316,26 @@ bool CAssetsDB::AddressDir(std::vector<std::pair<std::string, CAmount> >& vecAss
     return true;
 }
 
-bool CAssetsDB::AssetAddressDir(std::vector<std::pair<std::string, CAmount> >& vecAddressAmount, const std::string& assetName, const size_t count, const long start)
+// Can get to total count of addresses that belong to a certain asset_name, or get you the list of all address that belong to a certain asset_name
+bool CAssetsDB::AssetAddressDir(std::vector<std::pair<std::string, CAmount> >& vecAddressAmount, int& totalEntries, const bool& fGetTotal, const std::string& assetName, const size_t count, const long start)
 {
     FlushStateToDisk();
 
     std::unique_ptr<CDBIterator> pcursor(NewIterator());
     pcursor->Seek(std::make_pair(ASSET_ADDRESS_QUANTITY_FLAG, std::make_pair(assetName, std::string())));
+     if (fGetTotal) {
+        totalEntries = 0;
+        while (pcursor->Valid()) {
+            boost::this_thread::interruption_point();
+
+            std::pair<char, std::pair<std::string, std::string> > key;
+            if (pcursor->GetKey(key) && key.first == ASSET_ADDRESS_QUANTITY_FLAG && key.second.first == assetName) {
+                totalEntries += 1;
+            }
+            pcursor->Next();
+        }
+        return true;
+    }
 
     size_t skip = 0;
     if (start >= 0) {
@@ -335,7 +362,7 @@ bool CAssetsDB::AssetAddressDir(std::vector<std::pair<std::string, CAmount> >& v
     size_t offset = 0;
 
     // Load assets
-    while (pcursor->Valid() && loaded < count) {
+    while (pcursor->Valid() && loaded < count && loaded < MAX_DATABASE_RESULTS) {
         boost::this_thread::interruption_point();
 
         std::pair<char, std::pair<std::string, std::string> > key;

@@ -25,9 +25,9 @@ def listassets(filter):
     result = rpc_connection.listassets(filter, True)
     return(result) 
 
-def listaddressesbyasset(asset):
+def listaddressesbyasset(asset, bool, num1, num2):
     rpc_connection = get_rpc_connection()
-    result = rpc_connection.listaddressesbyasset(asset)
+    result = rpc_connection.listaddressesbyasset(asset, bool, num1, num2)
     return(result) 
 
 def rpc_call(params):
@@ -65,20 +65,25 @@ def audit(filter):
             if (key == 'amount'):
                 total_issued += value
                 print("Total issued for " + asset + " is: " + str(value))
-        address_qtys = listaddressesbyasset(asset)
 
-        address_count = 0
-        for address, qty in address_qtys.items():
-            address_count = address_count + 1
-            print(address + " -> " + str(qty))
-            total_for_asset += qty
-
+        loop = True
+        nloop = 0
+        naddresses = 0
+        while loop:
+            address_qtys = listaddressesbyasset(asset, False, 50000, nloop * 50000)
+            naddresses += len(address_qtys)
+            for address, qty in address_qtys.items():
+                print(address + " -> " + str(qty))
+                total_for_asset += qty
+            if len(address_qtys < 50000)
+                loop = False
+            nloop += 1
         print("Total in addresses for asset " + asset + " is " + str(total_for_asset))
 
         #Calculate stats
-        if address_count > max_dist_address_count:
+        if naddresses > max_dist_address_count:
             max_dist_asset_name = asset
-            max_dist_address_count = address_count
+            max_dist_address_count = naddresses
 
         if (total_issued == total_for_asset):
             print("Audit PASSED for " + asset)

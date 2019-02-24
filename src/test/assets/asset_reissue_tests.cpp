@@ -16,7 +16,7 @@
 #include <base58.h>
 #include <consensus/validation.h>
 #include <consensus/tx_verify.h>
-
+#include <validation.h>
 BOOST_FIXTURE_TEST_SUITE(asset_reissue_tests, BasicTestingSetup)
 
 
@@ -84,7 +84,8 @@ BOOST_FIXTURE_TEST_SUITE(asset_reissue_tests, BasicTestingSetup)
         BOOST_TEST_MESSAGE("Running Reissue IsValid Test");
 
         SelectParams(CBaseChainParams::MAIN);
-
+        fAssetIndex = true; // We only cache if fAssetIndex is true
+        passets = new CAssetsCache();
         // Create assets cache
         CAssetsCache cache;
 
