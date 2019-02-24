@@ -962,8 +962,8 @@ CReissueAsset::CReissueAsset(const std::string &strAssetName, const CAmount &nAm
 }
 
 bool CReissueAsset::IsValid(std::string &strError, CAssetsCache& assetCache, bool fForceCheckPrimaryAssetExists) const {
-{
     strError = "";
+
     if (fForceCheckPrimaryAssetExists) {
     CNewAsset asset;
         if (!assetCache.GetAssetMetaDataIfExists(this->strName, asset)) {
@@ -1010,8 +1010,7 @@ bool CReissueAsset::IsValid(std::string &strError, CAssetsCache& assetCache, boo
     }
     
     if (nUnits > MAX_UNIT || nUnits < -1) {
-        strError = _("Unable to reissue asset: unit must be less than 8 and greater than -1");
-        LogPrintf("Found bad units: %u\n", nUnits);
+        strError = _("Unable to reissue asset: unit must be between 8 and -1");
         return false;
     }
     
@@ -1120,6 +1119,7 @@ bool CAssetsCache::TrySpendCoin(const COutPoint& out, const CTxOut& txOut)
         CAssetCacheSpendAsset spend(assetName, address, nAmount);
         if (GetBestAssetAddressAmount(*this, assetName, address)) {
             auto pair = make_pair(assetName, address);
+                if (mapAssetsAddressAmount.count(pair))
             mapAssetsAddressAmount.at(pair) -= nAmount;
 
             if (mapAssetsAddressAmount.at(pair) < 0)
@@ -1216,27 +1216,33 @@ bool CAssetsCache::AddBackSpentAsset(const Coin& coin, const std::string& assetN
         mapAssetsAddressAmount.insert(std::make_pair(pair, 0));
 
     mapAssetsAddressAmount.at(pair) += nAmount;
+    }
 
     // Add the undoAmount to the vector so we know what changes are dirty and what needs to be saved to database
     CAssetCacheUndoAssetAmount undoAmount(assetName, address, nAmount);
     vUndoAssetAmount.push_back(undoAmount);
 
     return true;
-}}
+}
 
 //! Changes Memory Only
 bool CAssetsCache::UndoTransfer(const CAssetTransfer& transfer, const std::string& address, const COutPoint& outToRemove)
 {if (fAssetIndex) {
     // Make sure we are in a valid state to undo the transfer of the asset
     if (!GetBestAssetAddressAmount(*this, transfer.strName, address))
-        return error("%s : Failed to get the assets address balance from the database. Asset : %s Address : %s" , __func__, transfer.strName, address);
+            return error("%s : Failed to get the assets address balance from the database. Asset : %s Address : %s",
+                         __func__, transfer.strName, address);
 
     auto pair = std::make_pair(transfer.strName, address);
     if (!mapAssetsAddressAmount.count(pair))
-        return error("%s : Tried undoing a transfer and the map of address amount didn't have the asset address pair. Asset : %s Address : %s" , __func__, transfer.strName, address);
+            return error(
+                    "%s : Tried undoing a transfer and the map of address amount didn't have the asset address pair. Asset : %s Address : %s",
+                    __func__, transfer.strName, address);
 
     if (mapAssetsAddressAmount.at(pair) < transfer.nAmount)
-        return error("%s : Tried undoing a transfer and the map of address amount had less than the amount we are trying to undo. Asset : %s Address : %s" , __func__, transfer.strName, address);
+            return error(
+                    "%s : Tried undoing a transfer and the map of address amount had less than the amount we are trying to undo. Asset : %s Address : %s",
+                    __func__, transfer.strName, address);
 
     // Change the in memory balance of the asset at the address
     mapAssetsAddressAmount[pair] -= transfer.nAmount;
@@ -1266,7 +1272,6 @@ bool CAssetsCache::AddNewAsset(const CNewAsset& asset, const std::string address
 {
     if(CheckIfAssetExists(asset.strName))
         return error("%s: Tried adding new asset, but it already existed in the set of assets: %s", __func__, asset.strName);
-    // Insert the asset into the assests address amount map
     
     CAssetCacheNewAsset newAsset(asset, address, nHeight, blockHash);
 
@@ -1274,7 +1279,12 @@ bool CAssetsCache::AddNewAsset(const CNewAsset& asset, const std::string address
         setNewAssetsToRemove.erase(newAsset);
 
     setNewAssetsToAdd.insert(newAsset);
-    if (fAssetIndex) {mapAssetsAddressAmount[std::make_pair(asset.strName, address)] = asset.nAmount;}
+
+    if (fAssetIndex) {
+        // Insert the asset into the assests address amount map
+        mapAssetsAddressAmount[std::make_pair(asset.strName, address)] = asset.nAmount;
+    }
+
     return true;
 }
 
@@ -1369,12 +1379,14 @@ bool CAssetsCache::RemoveReissueAsset(const CReissueAsset& reissue, const std::s
     if (fAssetIndex) {
     // Get the best amount form the database or dirty cache
     if (!GetBestAssetAddressAmount(*this, reissue.strName, address))
-        return error("%s : Trying to undo reissue of an asset but the assets amount isn't in the database", __func__);
+            return error("%s : Trying to undo reissue of an asset but the assets amount isn't in the database",
+                         __func__);
 
     mapAssetsAddressAmount[pair] -= reissue.nAmount;
 
     if (mapAssetsAddressAmount[pair] < 0)
-        return error("%s : Tried undoing reissue of an asset, but the assets amount went negative: %s", __func__, reissue.strName);
+            return error("%s : Tried undoing reissue of an asset, but the assets amount went negative: %s", __func__,
+                         reissue.strName);
     }
     return true;
 }
@@ -1382,11 +1394,6 @@ bool CAssetsCache::RemoveReissueAsset(const CReissueAsset& reissue, const std::s
 //! Changes Memory Only
 bool CAssetsCache::AddOwnerAsset(const std::string& assetsName, const std::string address)
 {
-    if (fAssetIndex) {
-    // Insert the asset into the assests address amount map
-    mapAssetsAddressAmount[std::make_pair(assetsName, address)] = OWNER_ASSET_AMOUNT;
-    }
-
     // Update the cache
     CAssetCacheNewOwner newOwner(assetsName, address);
 
@@ -1395,22 +1402,28 @@ bool CAssetsCache::AddOwnerAsset(const std::string& assetsName, const std::strin
 
     setNewOwnerAssetsToAdd.insert(newOwner);
 
+    if (fAssetIndex) {
+        // Insert the asset into the assests address amount map
+        mapAssetsAddressAmount[std::make_pair(assetsName, address)] = OWNER_ASSET_AMOUNT;
+    }
+
     return true;
 }
 
 //! Changes Memory Only
 bool CAssetsCache::RemoveOwnerAsset(const std::string& assetsName, const std::string address)
 {
-    if (fAssetIndex) {
-    auto pair = std::make_pair(assetsName, address);
-    mapAssetsAddressAmount[pair] = 0;
-    }
     // Update the cache
     CAssetCacheNewOwner newOwner(assetsName, address);
     if (setNewOwnerAssetsToAdd.count(newOwner))
         setNewOwnerAssetsToAdd.erase(newOwner);
 
     setNewOwnerAssetsToRemove.insert(newOwner);
+
+    if (fAssetIndex) {
+        auto pair = std::make_pair(assetsName, address);
+        mapAssetsAddressAmount[pair] = 0;
+    }
 
     return true;
 }
@@ -1484,10 +1497,11 @@ bool CAssetsCache::DumpCacheToDatabase()
                         dirty = true;
                         message = "_Failed Writing Address Balance to database";
                     }
-                if (!passetsdb->WriteAddressAssetQuantity(newAsset.address, newAsset.asset.strName, newAsset.asset.nAmount)) {
                 
+                if (!passetsdb->WriteAddressAssetQuantity(newAsset.address, newAsset.asset.strName,
+                                                          newAsset.asset.nAmount)) {
                     dirty = true;
-                    message = "_Failed Erasing Owner Address Balance from database";
+                    message = "_Failed Writing Address Balance to database";
                 }
                 }
 
@@ -2437,10 +2451,12 @@ bool GetBestAssetAddressAmount(CAssetsCache& cache, const std::string& assetName
         cache.mapAssetsAddressAmount.insert(make_pair(pair, nDBAmount));
         return true;
     }
+    }
 
     // The amount wasn't found return false
     return false;
-}}
+}
+
 //! sets _balances_ with the total quantity of each owned asset
 bool GetAllMyAssetBalances(std::map<std::string, std::vector<COutput> >& outputs, std::map<std::string, CAmount>& amounts, const std::string& prefix) {
 

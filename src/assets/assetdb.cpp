@@ -30,14 +30,13 @@ bool CAssetsDB::WriteAssetData(const CNewAsset &asset, const int nHeight, const 
     return Write(std::make_pair(ASSET_FLAG, asset.strName), data);
 }
 
-bool CAssetsDB::WriteAddressAssetQuantity(const std::string &address, const std::string &assetName, const CAmount& quantity) 
-{
-    return Write(std::make_pair(ADDRESS_ASSET_QUANTITY_FLAG, std::make_pair(address, assetName)), quantity);
-}
-
 bool CAssetsDB::WriteAssetAddressQuantity(const std::string &assetName, const std::string &address, const CAmount &quantity)
 {
     return Write(std::make_pair(ASSET_ADDRESS_QUANTITY_FLAG, std::make_pair(assetName, address)), quantity);
+}
+
+bool CAssetsDB::WriteAddressAssetQuantity(const std::string &address, const std::string &assetName, const CAmount& quantity) {
+    return Write(std::make_pair(ADDRESS_ASSET_QUANTITY_FLAG, std::make_pair(address, assetName)), quantity);
 }
 
 bool CAssetsDB::ReadAssetData(const std::string& strName, CNewAsset& asset, int& nHeight, uint256& blockHash)
@@ -55,13 +54,13 @@ bool CAssetsDB::ReadAssetData(const std::string& strName, CNewAsset& asset, int&
     return ret;
 }
 
-bool CAssetsDB::ReadAddressAssetQuantity(const std::string &address, const std::string &assetName, CAmount& quantity) 
-{
-    return Read(std::make_pair(ADDRESS_ASSET_QUANTITY_FLAG, std::make_pair(address, assetName)), quantity);
-}
 bool CAssetsDB::ReadAssetAddressQuantity(const std::string& assetName, const std::string& address, CAmount& quantity)
 {
     return Read(std::make_pair(ASSET_ADDRESS_QUANTITY_FLAG, std::make_pair(assetName, address)), quantity);
+}
+
+bool CAssetsDB::ReadAddressAssetQuantity(const std::string &address, const std::string &assetName, CAmount& quantity) {
+    return Read(std::make_pair(ADDRESS_ASSET_QUANTITY_FLAG, std::make_pair(address, assetName)), quantity);
 }
 
 bool CAssetsDB::EraseAssetData(const std::string& assetName)
@@ -74,13 +73,11 @@ bool CAssetsDB::EraseMyAssetData(const std::string& assetName)
     return Erase(std::make_pair(MY_ASSET_FLAG, assetName));
 }
 
-bool CAssetsDB::EraseAssetAddressQuantity(const std::string &assetName, const std::string &address) 
-{
+bool CAssetsDB::EraseAssetAddressQuantity(const std::string &assetName, const std::string &address) {
     return Erase(std::make_pair(ASSET_ADDRESS_QUANTITY_FLAG, std::make_pair(assetName, address)));
 }
 
-bool CAssetsDB::EraseAddressAssetQuantity(const std::string &address, const std::string &assetName) 
-{
+bool CAssetsDB::EraseAddressAssetQuantity(const std::string &address, const std::string &assetName) {
     return Erase(std::make_pair(ADDRESS_ASSET_QUANTITY_FLAG, std::make_pair(address, assetName)));
 }
 
@@ -136,7 +133,7 @@ bool CAssetsDB::LoadAssets()
                 pcursor->Next();
                 // Loaded enough from database to have in memory.
                 // No need to load everything if it is just going to be removed from the cache
-                if (passetsCache->Size() == (passetsCache->MaxSize() / 2)
+                if (passetsCache->Size() == (passetsCache->MaxSize() / 2))
                 break;
             } else {
                 return error("%s: failed to read asset", __func__);
@@ -156,7 +153,8 @@ bool CAssetsDB::LoadAssets()
         if (pcursor3->GetKey(key) && key.first == ASSET_ADDRESS_QUANTITY_FLAG) {
             CAmount value;
             if (pcursor3->GetValue(value)) {
-                passets->mapAssetsAddressAmount.insert(std::make_pair(std::make_pair(key.second.first, key.second.second), value));
+                    passets->mapAssetsAddressAmount.insert(
+                            std::make_pair(std::make_pair(key.second.first, key.second.second), value));
                 if (passets->mapAssetsAddressAmount.size() > MAX_CACHE_ASSETS_SIZE)
                     break;
                 pcursor3->Next();
@@ -166,6 +164,7 @@ bool CAssetsDB::LoadAssets()
         } else {
             break;
         }
+    }
     }
 
     return true;
@@ -242,10 +241,6 @@ bool CAssetsDB::AssetDir(std::vector<CDatabasedAssetData>& assets, const std::st
     return true;
 }
 
-bool CAssetsDB::AssetDir(std::vector<CDatabasedAssetData>& assets)
-{
-    return CAssetsDB::AssetDir(assets, "*", MAX_SIZE, 0);
-}
 bool CAssetsDB::AddressDir(std::vector<std::pair<std::string, CAmount> >& vecAssetAmount, int& totalEntries, const bool& fGetTotal, const std::string& address, const size_t count, const long start)
 {
     FlushStateToDisk();

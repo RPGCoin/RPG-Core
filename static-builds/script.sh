@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Set DISTNAME, BRANCH and MAKEOPTS to the desired settings
 DISTNAME=rpg-2.0.0
-MAKEOPTS="-j $(nproc)"
+MAKEOPTS="-j$(nproc)"
 BRANCH=master
 clear
 if [[ $EUID -ne 0 ]]; then

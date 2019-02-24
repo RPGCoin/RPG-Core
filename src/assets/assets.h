@@ -30,6 +30,7 @@
 #define DEFAULT_HAS_IPFS 0
 #define DEFAULT_IPFS ""
 #define MIN_ASSET_LENGTH 3
+#define MAX_ASSET_LENGTH 32
 #define OWNER_TAG "!"
 #define OWNER_LENGTH 1
 #define OWNER_UNITS 0
@@ -232,8 +233,10 @@ public :
 
    std::string CacheToString() const {
 
-      return strprintf("vNewAssetsToRemove size : %d, vNewAssetsToAdd size : %d, vNewTransfer size : %d, vSpentAssets : %d\n",
-                       setNewAssetsToRemove.size(), setNewAssetsToAdd.size(), setNewTransferAssetsToAdd.size(), vSpentAssets.size());
+       return strprintf(
+               "vNewAssetsToRemove size : %d, vNewAssetsToAdd size : %d, vNewTransfer size : %d, vSpentAssets : %d\n",
+               setNewAssetsToRemove.size(), setNewAssetsToAdd.size(), setNewTransferAssetsToAdd.size(),
+               vSpentAssets.size());
     }
 };
 

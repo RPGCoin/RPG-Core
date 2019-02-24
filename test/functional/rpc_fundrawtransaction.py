@@ -7,6 +7,7 @@
 
 from test_framework.test_framework import RPGTestFramework
 from test_framework.util import *
+from pprint import *
 
 
 def get_unspent(listunspent, amount):

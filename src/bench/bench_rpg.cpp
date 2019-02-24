@@ -5,7 +5,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "bench.h"
-
 #include "algo/sha256.h"
 #include "key.h"
 #include "validation.h"
