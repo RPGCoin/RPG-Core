@@ -9,7 +9,6 @@
 #include "arith_uint256.h"
 #include "chain.h"
 #include "chainparams.h"
-#include "base58.h"
 #include "checkpoints.h"
 #include "checkqueue.h"
 #include "consensus/consensus.h"
@@ -1231,7 +1230,13 @@ bool IsInitialBlockDownload()
 }
 bool IsInitialSyncSpeedUp()
 {
+    // Once this function has returned false, it must remain false.
     static std::atomic<bool> syncLatchToFalse{false};
+    // Optimization: pre-test latch before taking the lock.
+    if (syncLatchToFalse.load(std::memory_order_relaxed))
+        return false;
+
+    LOCK(cs_main);
     if (syncLatchToFalse.load(std::memory_order_relaxed))
         return false;
     if (fImporting || fReindex)
@@ -3007,6 +3012,7 @@ bool static ConnectTip(CValidationState& state, const CChainParams& chainparams,
 
         int64_t nTimeConnectStart = GetTimeMicros();
         bool rv = ConnectBlock(blockConnecting, state, pindexNew, view, chainparams, &assetCache);
+        GetMainSignals().BlockChecked(blockConnecting, state);
         if (!rv) {
             if (state.IsInvalid())
                 InvalidBlockFound(pindexNew, state);
@@ -4101,7 +4107,7 @@ bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams,
     indexDummy.nHeight = pindexPrev->nHeight + 1;
 
     /** RPG START */
-    CAssetsCache assetCache = *currentActiveAssetCache();
+    CAssetsCache assetCache = *GetCurrentAssetCache();
     /** RPG END */
 
     // NOTE: CheckBlockHeader is called by CheckBlock
@@ -4507,7 +4513,7 @@ bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview,
     int reportDone = 0;
 
     auto currentActiveAssetCache = GetCurrentAssetCache();
-    CAssetsCache assetsCache(*currentActiveAssetCache);
+    CAssetsCache assetCache(*currentActiveAssetCache);
     LogPrintf("[0%%]...");
     for (CBlockIndex* pindex = chainActive.Tip(); pindex && pindex->pprev; pindex = pindex->pprev)
     {
