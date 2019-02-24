@@ -51,6 +51,10 @@ public:
     bool handlePaymentRequest(const SendAssetsRecipient &recipient);
     void processNewTransaction();
 
+    // The first time the transfer asset screen is loaded, the wallet isn't doing loading so the asset list is empty.
+    // The first time the screen is navigated to, refresh the asset list
+    void handleFirstSelection();
+
 public Q_SLOTS:
     void clear();
     void reject();

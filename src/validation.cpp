@@ -5385,6 +5385,8 @@ CAssetsCache* GetCurrentAssetCache()
         } else {
             passets->Copy(*tmpAssetCache);
             fSwitchFromInitialBlockDownload = true;
+            delete tmpAssetCache;
+            tmpAssetCache = new CAssetsCache();
         }
     }
 

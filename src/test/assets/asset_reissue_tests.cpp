@@ -45,8 +45,7 @@ BOOST_FIXTURE_TEST_SUITE(asset_reissue_tests, BasicTestingSetup)
     // Check to see if the reissue changed the cache data correctly
     BOOST_CHECK_MESSAGE(cache.mapReissuedAssetData.count("RPGASSET"), "Map Reissued Asset should contain the asset \"RPGASSET\"");
     BOOST_CHECK_MESSAGE(cache.mapAssetsAddressAmount.at(make_pair("RPGASSET", Params().GlobalBurnAddress())) == CAmount(101 * COIN), "Reissued amount wasn't added to the previous total");
-    BOOST_CHECK_MESSAGE(cache.mapAssetsAddresses.at("RPGASSET").count(Params().GlobalBurnAddress()), "Reissued address wasn't in the map");
-
+    
     // Get the new asset data from the cache
     CNewAsset asset2;
     BOOST_CHECK_MESSAGE(cache.GetAssetMetaDataIfExists("RPGASSET", asset2), "Failed to get the asset2");

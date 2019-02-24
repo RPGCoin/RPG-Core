@@ -1446,7 +1446,6 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
 
                 pblocktree = new CBlockTreeDB(nBlockTreeDBCache, false, fReset, dbMaxFileSize);
 
-
                 delete passets;
                 delete passetsdb;
                 delete passetsCache;
@@ -1456,7 +1455,6 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
                 passets = new CAssetsCache();
                 passetsCache = new CLRUCache<std::string, CDatabasedAssetData>(MAX_CACHE_ASSETS_SIZE);
 
-
                 // Need to load assets before we verify the database
                 if (!passetsdb->LoadAssets()) {
                     strLoadError = _("Failed to load Assets Database");
@@ -1464,9 +1462,9 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
                 }
 
                 if (!passetsdb->ReadReissuedMempoolState())
-                    LogPrintf("Database failed to load last Reissued Mempool State. Will have to start from empty state");
+                    LogPrintf("Database failed to load last Reissued Mempool State. Will have to start from empty state\n");
 
-                LogPrintf("Loaded Assets from database without error\nCache of assets size: %d\nNumber of assets I have: %d\n", passetsCache->Size(), passets->mapMyUnspentAssets.size());
+                    LogPrintf("Loaded Assets from database without error\nCache of assets size: %d\n", passetsCache->Size(), "\n");
 
                 if (fReset) {
                     pblocktree->WriteReindexing(true);
@@ -1495,6 +1493,11 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
                 // Check for changed -txindex state
                 if (fTxIndex != gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
                     strLoadError = _("You need to rebuild the database using -reindex to change -txindex");
+                    break;
+                }
+                // Check for changed -assetindex state
+                if (fAssetIndex != gArgs.GetBoolArg("-assetindex", DEFAULT_ASSETINDEX)) {
+                    strLoadError = _("You need to rebuild the database using -reindex to change -assetIndex");
                     break;
                 }
 
@@ -1788,8 +1791,5 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
 #ifdef ENABLE_WALLET
     StartWallets(scheduler);
 #endif
-
-
-    UpdatePossibleAssets();
     return !fRequestShutdown;
 }
