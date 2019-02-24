@@ -254,7 +254,7 @@ UniValue issueunique(const JSONRPCRequest& request)
 
                 "\nExamples:\n"
                 + HelpExampleCli("issueunique", "\"MY_ASSET\" \'[\"primo\",\"secundo\"]\'")
-                + HelpExampleCli("issueunique", "\"MY_ASSET\" \'[\"primo\",\"secundo\"\'] \'[\"first_hash\",\"second_hash\"]\'")
+                + HelpExampleCli("issueunique", "\"MY_ASSET\" \'[\"primo\",\"secundo\"]\' \'[\"first_hash\",\"second_hash\"]\'")
         );
 
     CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
@@ -478,7 +478,7 @@ UniValue getassetdata(const JSONRPCRequest& request)
     UniValue result (UniValue::VOBJ);
 
     auto currentActiveAssetCache = GetCurrentAssetCache();
-    if (!currentActiveAssetCache)
+    if (currentActiveAssetCache) {
         CNewAsset asset;
         if (!currentActiveAssetCache->GetAssetMetaDataIfExists(asset_name, asset))
             return NullUniValue;
@@ -680,7 +680,7 @@ UniValue listmyassets(const JSONRPCRequest &request)
 UniValue listaddressesbyasset(const JSONRPCRequest &request)
 {
     if (!fAssetIndex) {
-        return "_This rpc call is not functional unless -assetindex is enabled. To enable, please run the wallet with -assetindex, this will require a reindex to occur\n";
+        return "_This rpc call is not functional unless -assetindex is enabled. To enable, please run the wallet with -assetindex, this will require a reindex to occur";
     }
     if (request.fHelp || !AreAssetsDeployed() || request.params.size() > 4 || request.params.size() < 1)
         throw std::runtime_error(
@@ -706,7 +706,6 @@ UniValue listaddressesbyasset(const JSONRPCRequest &request)
                 + HelpExampleCli("listaddressesbyasset", "\"ASSET_NAME\" true")
                 + HelpExampleCli("listaddressesbyasset", "\"ASSET_NAME\"")
         );
-        );
 
     LOCK(cs_main);
 
@@ -728,7 +727,6 @@ UniValue listaddressesbyasset(const JSONRPCRequest &request)
     }
     if (!IsAssetNameValid(asset_name))
         return "_Not a valid asset name";
-    UniValue addresses(UniValue::VOBJ);
 
     LOCK(cs_main);
     std::vector<std::pair<std::string, CAmount> > vecAddressAmounts;
