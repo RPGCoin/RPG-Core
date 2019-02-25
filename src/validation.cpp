@@ -1246,7 +1246,7 @@ bool IsInitialSyncSpeedUp()
     }
     if (chainActive.Tip() == nullptr)
     {
-        LogPrintf("IsInitialBlockDownload (tip is null)\n")
+        LogPrintf("IsInitialBlockDownload (tip is null)\n");
         return true;
     }
     if (chainActive.Tip()->nChainWork < nMinimumChainWork)
