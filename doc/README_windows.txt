@@ -18,6 +18,6 @@ However, it downloads and stores the entire history of RPG transactions;
 depending on the speed of your computer and network connection, the synchronization
 process can take anywhere from a few hours to a day or more.
 
-See the rpg wiki at:
-  https://rpg.wiki/wiki/RPGcoin_Wiki
+See the rpg website at:
+  https://rpgcoin.gg
 for more help and information.

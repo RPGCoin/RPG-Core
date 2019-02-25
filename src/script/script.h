@@ -7,7 +7,7 @@
 #ifndef RPG_SCRIPT_SCRIPT_H
 #define RPG_SCRIPT_SCRIPT_H
 
-#include "algo/common.h"
+#include "crypto/common.h"
 #include "prevector.h"
 #include "serialize.h"
 #include "amount.h"

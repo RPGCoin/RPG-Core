@@ -8,7 +8,7 @@
 
 #include "uint256.h"
 #include "utilstrencodings.h"
-#include "algo/common.h"
+#include "crypto/common.h"
 
 #include <stdio.h>
 #include <string.h>
