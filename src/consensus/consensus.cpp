@@ -9,10 +9,16 @@
 
 unsigned int GetMaxBlockWeight()
 {
+	if (AreAssetsDeployed()){
         return MAX_BLOCK_WEIGHT_RIP2;
+	}
+        return MAX_BLOCK_WEIGHT;
 }
 
 unsigned int GetMaxBlockSerializedSize()
 {
+	if (AreAssetsDeployed()){
         return MAX_BLOCK_SERIALIZED_SIZE_RIP2;
+	}
+		return MAX_BLOCK_SERIALIZED_SIZE;
 }

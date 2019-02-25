@@ -217,8 +217,7 @@ public:
     int8_t reissuable;
     int8_t hasIPFS;
     std::string ipfs;
-    int nHeight;
-    uint256 hash;
+    int32_t nHeight;
 
     SerializedAssetData(const CDatabasedAssetData &assetData);
 
@@ -233,7 +232,6 @@ public:
         READWRITE(hasIPFS);
         READWRITE(ipfs);
         READWRITE(nHeight);
-        READWRITE(hash);
     }
 
 

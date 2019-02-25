@@ -12,7 +12,7 @@
 #include "consensus/validation.h"
 
 namespace block_bench {
-#include "data/block413567.raw.h"
+#include "bench/data/block413567.raw.h"
 } // namespace block_bench
 
 // These are the two major time-sinks which happen after we have fully received

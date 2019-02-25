@@ -100,19 +100,19 @@ static std::string Translate(const char* psz)
     return QCoreApplication::translate("rpg-core", psz).toStdString();
 }
 
-static QString GetLangTerrpgry()
+static QString GetLangTerritory()
 {
     QSettings settings;
     // Get desired locale (e.g. "de_DE")
     // 1) System default language
-    QString lang_terrpgry = QLocale::system().name();
+    QString lang_territory = QLocale::system().name();
     // 2) Language from QSettings
-    QString lang_terrpgry_qsettings = settings.value("language", "").toString();
-    if(!lang_terrpgry_qsettings.isEmpty())
-        lang_terrpgry = lang_terrpgry_qsettings;
+    QString lang_territory_qsettings = settings.value("language", "").toString();
+    if(!lang_territory_qsettings.isEmpty())
+        lang_territory = lang_territory_qsettings;
     // 3) -lang command line argument
-    lang_terrpgry = QString::fromStdString(gArgs.GetArg("-lang", lang_terrpgry.toStdString()));
-    return lang_terrpgry;
+    lang_territory = QString::fromStdString(gArgs.GetArg("-lang", lang_territory.toStdString()));
+    return lang_territory;
 }
 
 /** Set up translations */
@@ -126,14 +126,14 @@ static void initTranslations(QTranslator &qtTranslatorBase, QTranslator &qtTrans
 
     // Get desired locale (e.g. "de_DE")
     // 1) System default language
-    QString lang_terrpgry = GetLangTerrpgry();
+    QString lang_territory = GetLangTerritory();
 
     // Convert to "de" only by truncating "_DE"
-    QString lang = lang_terrpgry;
-    lang.truncate(lang_terrpgry.lastIndexOf('_'));
+    QString lang = lang_territory;
+    lang.truncate(lang_territory.lastIndexOf('_'));
 
     // Load language files for configured locale:
-    // - First load the translator for the base language, without terrpgry
+    // - First load the translator for the base language, without territory
     // - Then load the more specific locale translator
 
     // Load e.g. qt_de.qm
@@ -141,7 +141,7 @@ static void initTranslations(QTranslator &qtTranslatorBase, QTranslator &qtTrans
         QApplication::installTranslator(&qtTranslatorBase);
 
     // Load e.g. qt_de_DE.qm
-    if (qtTranslator.load("qt_" + lang_terrpgry, QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+    if (qtTranslator.load("qt_" + lang_territory, QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
         QApplication::installTranslator(&qtTranslator);
 
     // Load e.g. rpg_de.qm (shortcut "de" needs to be defined in rpg.qrc)
@@ -149,7 +149,7 @@ static void initTranslations(QTranslator &qtTranslatorBase, QTranslator &qtTrans
         QApplication::installTranslator(&translatorBase);
 
     // Load e.g. rpg_de_DE.qm (shortcut "de_DE" needs to be defined in rpg.qrc)
-    if (translator.load(lang_terrpgry, ":/translations/"))
+    if (translator.load(lang_territory, ":/translations/"))
         QApplication::installTranslator(&translator);
 }
 
@@ -605,7 +605,7 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationName(QAPP_ORG_NAME);
     QApplication::setOrganizationDomain(QAPP_ORG_DOMAIN);
     QApplication::setApplicationName(QAPP_APP_NAME_DEFAULT);
-    GUIUtil::SubstituteFonts(GetLangTerrpgry());
+    GUIUtil::SubstituteFonts(GetLangTerritory());
 
     /// 4. Initialization of translations, so that intro dialog is in user's language
     // Now that QSettings are accessible, initialize translations

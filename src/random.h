@@ -7,8 +7,8 @@
 #ifndef RPG_RANDOM_H
 #define RPG_RANDOM_H
 
-#include "algo/chacha20.h"
-#include "algo/common.h"
+#include "crypto/chacha20.h"
+#include "crypto/common.h"
 #include "uint256.h"
 
 #include <stdint.h>

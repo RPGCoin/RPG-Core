@@ -1,8 +1,8 @@
 Source: rpg
 Section: utils
 Priority: optional
-Maintainer: Matt Corallo <matt@mattcorallo.com>
-Uploaders: Matt Corallo <matt@mattcorallo.com>
+Maintainer: Silence <silence@rpgcoin.gg>
+Uploaders: Silence <silence@rpgcoin.gg>
 Build-Depends: debhelper,
  devscripts,
  automake,

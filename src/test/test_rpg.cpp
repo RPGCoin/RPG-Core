@@ -7,7 +7,7 @@
 #include "chainparams.h"
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
-#include "algo/sha256.h"
+#include "crypto/sha256.h"
 #include "fs.h"
 #include "key.h"
 #include "validation.h"
@@ -106,6 +106,7 @@ TestingSetup::~TestingSetup()
         delete pcoinsTip;
         delete pcoinsdbview;
         delete pblocktree;
+        delete passets;
         fs::remove_all(pathTemp);
 }
 

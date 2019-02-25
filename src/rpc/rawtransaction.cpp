@@ -508,6 +508,7 @@ UniValue createrawtransaction(const JSONRPCRequest& request)
         rawTx.vin.push_back(in);
     }
 
+    auto currentActiveAssetCache = GetCurrentAssetCache();
     std::set<CTxDestination> destinations;
     std::vector<std::string> addrList = sendTo.getKeys();
     for (const std::string& name_ : addrList) {
@@ -585,7 +586,7 @@ UniValue createrawtransaction(const JSONRPCRequest& request)
 
                     // Verify that data
                     std::string strError = "";
-                    if (!asset.IsValid(strError, *passets))
+                    if (!asset.IsValid(strError, *currentActiveAssetCache))
                         throw JSONRPCError(RPC_INVALID_PARAMETER, strError);
 
                     // Construct the asset transaction
@@ -661,7 +662,7 @@ UniValue createrawtransaction(const JSONRPCRequest& request)
 
                         // Verify that data
                         std::string strError = "";
-                        if (!asset.IsValid(strError, *passets))
+                        if (!asset.IsValid(strError, *currentActiveAssetCache))
                             throw JSONRPCError(RPC_INVALID_PARAMETER, strError);
 
                         // Construct the asset transaction
@@ -721,7 +722,7 @@ UniValue createrawtransaction(const JSONRPCRequest& request)
 
                     // Validate the the object is valid
                     std::string strError;
-                    if (!reissueObj.IsValid(strError, *passets))
+                    if (!reissueObj.IsValid(strError, *currentActiveAssetCache))
                         throw JSONRPCError(RPC_INVALID_PARAMETER, strError);
 
 
