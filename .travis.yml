@@ -10,7 +10,7 @@ cache:
 addons:
   apt:
     sources:
-    -ppa:bitcoin/bitcoin
+    - ppa:bitcoin/bitcoin
     packages:
     - autoconf
     - autotools-dev
