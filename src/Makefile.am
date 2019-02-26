@@ -222,6 +222,7 @@ RPG_CORE_H = \
   algo/skein.c \
   algo/hamsi.c \
   algo/hamsi_helper.c \
+  algo/md_helper.c \
   algo/whirlpool.c \
   algo/shabal.c \
   algo/fugue.c \
