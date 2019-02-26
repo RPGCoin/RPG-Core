@@ -210,6 +210,7 @@ RPG_CORE_H = \
   algo/bmw.c \
   algo/cubehash.c \
   algo/echo.c \
+  algo/aes_helper.c \
   algo/jh.c \
   algo/keccak.c \
   algo/luffa.c \
