@@ -196,15 +196,11 @@ RPG_CORE_H = \
   algo/sph_simd.h \
   algo/sph_echo.h \
   algo/sph_shavite.h \
-  algo/sph_fugue.h \
-  algo/sph_hamsi.h \
-  algo/sph_shabal.h \
   algo/sph_sha2.h \
   algo/sph_haval.h \
   algo/sph_tiger.h \
   algo/lyra2.h \
   algo/sponge.h \
-  algo/sph_whirlpool.h \
   algo/gost_streebog.h \
   algo/SWIFFTX/SWIFFTX.h \
   algo/hashx21s.h \
@@ -213,7 +209,6 @@ RPG_CORE_H = \
   algo/bmw.c \
   algo/cubehash.c \
   algo/echo.c \
-  algo/aes_helper.c \
   algo/jh.c \
   algo/keccak.c \
   algo/luffa.c \
@@ -221,8 +216,6 @@ RPG_CORE_H = \
   algo/simd.c \
   algo/skein.c \
   algo/hamsi.c \
-  algo/hamsi_helper.c \
-  algo/md_helper.c \
   algo/whirlpool.c \
   algo/shabal.c \
   algo/fugue.c \
