@@ -196,6 +196,7 @@ RPG_CORE_H = \
   algo/sph_simd.h \
   algo/sph_echo.h \
   algo/sph_shavite.h \
+  algo/sph_hamsi.h \
   algo/sph_sha2.h \
   algo/sph_haval.h \
   algo/sph_tiger.h \
