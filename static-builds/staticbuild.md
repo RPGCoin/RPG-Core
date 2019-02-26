@@ -7,7 +7,7 @@ DISTNAME=rpg-2.0.0
 sudo apt install -y curl g++-aarch64-linux-gnu g++-7-aarch64-linux-gnu gcc-7-aarch64-linux-gnu binutils-aarch64-linux-gnu g++-arm-linux-gnueabihf g++-7-arm-linux-gnueabihf gcc-7-arm-linux-gnueabihf binutils-arm-linux-gnueabihf g++-7-multilib gcc-7-multilib binutils-gold git pkg-config autoconf libtool automake bsdmainutils ca-certificates python
 git clone https://github.com/RPGCoin/RPG-Core
 mkdir -p release
-cd RPG-Core/depends
+cd ~/RPG-Core/depends
 make HOST=x86_64-linux-gnu -j4
 cd ~/RPG-Core
 export PATH=$PWD/depends/x86_64-linux-gnu/native/bin:$PATH
@@ -126,7 +126,7 @@ DISTNAME=rpg-2.0.0
 sudo apt install -y curl g++-aarch64-linux-gnu g++-7-aarch64-linux-gnu gcc-7-aarch64-linux-gnu binutils-aarch64-linux-gnu g++-arm-linux-gnueabihf g++-7-arm-linux-gnueabihf gcc-7-arm-linux-gnueabihf binutils-arm-linux-gnueabihf g++-7-multilib gcc-7-multilib binutils-gold git pkg-config autoconf libtool automake bsdmainutils ca-certificates python
 git clone https://github.com/RPGCoin/RPG-Core
 mkdir -p release
-cd RPG-Core/depends
+cd ~/RPG-Core/depends
 make HOST=arm-linux-gnueabihf -j4
 cd ~/RPG-Core
 export PATH=$PWD/depends/arm-linux-gnueabihf/native/bin:$PATH
@@ -160,7 +160,7 @@ DISTNAME=rpg-2.0.0
 sudo apt install -y curl g++-aarch64-linux-gnu g++-7-aarch64-linux-gnu gcc-7-aarch64-linux-gnu binutils-aarch64-linux-gnu g++-arm-linux-gnueabihf g++-7-arm-linux-gnueabihf gcc-7-arm-linux-gnueabihf binutils-arm-linux-gnueabihf g++-7-multilib gcc-7-multilib binutils-gold git pkg-config autoconf libtool automake bsdmainutils ca-certificates python
 git clone https://github.com/RPGCoin/RPG-Core
 mkdir -p release
-cd RPG-Core/depends
+cd ~/RPG-Core/depends
 make HOST=aarch64-linux-gnu -j4
 cd ~/RPG-Core
 export PATH=$PWD/depends/aarch64-linux-gnu/native/bin:$PATH
@@ -195,11 +195,11 @@ sudo apt install -y build-essential libtool autotools-dev automake pkg-config bs
 sudo apt install -y g++-mingw-w64-x86-64
 sudo update-alternatives --config x86_64-w64-mingw32-g++ # Set the default mingw32 g++ compiler option to posix.
 git clone https://github.com/RPGCoin/RPG-Core
-mkdir -p release
-mkdir -p release/unsigned/
-mkdir -p sign/win64
+mkdir -p ~/release
+mkdir -p ~/release/unsigned/
+mkdir -p ~/sign/win64
 PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') # strip out problematic Windows %PATH% imported var
-cd RPG-Core/depends
+cd ~/RPG-Core/depends
 make HOST=x86_64-w64-mingw32 -j4
 cd ~/RPG-Core
 export PATH=$PWD/depends/x86_64-w64-mingw32/native/bin:$PATH
@@ -281,7 +281,7 @@ mkdir -p release
 mkdir -p release/unsigned/
 mkdir -p sign/win32
 PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') # strip out problematic Windows %PATH% imported var
-cd RPG-Core/depends
+cd ~/RPG-Core/depends
 make HOST=i686-w64-mingw32 -j4
 cd ~/RPG-Core
 export PATH=$PWD/depends/i686-w64-mingw32/native/bin:$PATH
@@ -375,7 +375,7 @@ sudo apt install ca-certificates curl g++ git pkg-config autoconf librsvg2-bin l
 git clone https://github.com/RPGCoin/RPG-Core
 mkdir ~/RPG-Core/depends/SDKs
 #transfer MacOSX10.11.sdk.tar.gz to the folder RPG-Core/depends/SDKs
-cd RPG-Core/depends/SDKs && tar -xf MacOSX10.11.sdk.tar.gz 
+cd ~/RPG-Core/depends/SDKs && tar -xf MacOSX10.11.sdk.tar.gz 
 rm MacOSX10.11.sdk.tar.gz 
 cd ~/RPG-Core/depends
 make -j4 HOST="x86_64-apple-darwin14"
