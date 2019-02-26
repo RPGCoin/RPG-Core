@@ -198,6 +198,7 @@ RPG_CORE_H = \
   algo/sph_shavite.h \
   algo/sph_fugue.h \
   algo/sph_hamsi.h \
+  algo/sph_shabal.h \
   algo/sph_sha2.h \
   algo/sph_haval.h \
   algo/sph_tiger.h \
@@ -219,6 +220,7 @@ RPG_CORE_H = \
   algo/simd.c \
   algo/skein.c \
   algo/hamsi.c \
+  algo/hamsi_helper.c \
   algo/whirlpool.c \
   algo/shabal.c \
   algo/fugue.c \
