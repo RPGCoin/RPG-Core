@@ -204,6 +204,7 @@ RPG_CORE_H = \
   algo/sph_tiger.h \
   algo/lyra2.h \
   algo/sponge.h \
+  algo/sph_whirlpool.h \
   algo/gost_streebog.h \
   algo/SWIFFTX/SWIFFTX.h \
   algo/hashx21s.h \
