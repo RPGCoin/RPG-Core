@@ -6,7 +6,7 @@
 
 #include "random.h"
 
-#include "algo/sha512.h"
+#include "crypto/sha512.h"
 #include "support/cleanse.h"
 #ifdef WIN32
 #include "compat.h" // for Windows API

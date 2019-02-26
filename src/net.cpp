@@ -14,8 +14,8 @@
 #include "chainparams.h"
 #include "clientversion.h"
 #include "consensus/consensus.h"
-#include "algo/common.h"
-#include "algo/sha256.h"
+#include "crypto/common.h"
+#include "crypto/sha256.h"
 #include "hash.h"
 #include "primitives/transaction.h"
 #include "netbase.h"
@@ -2656,7 +2656,7 @@ bool CConnman::OutboundTargetReached(bool historicalBlockServingLimit)
     {
         // keep a large enough buffer to at least relay each block once
         uint64_t timeLeftInCycle = GetMaxOutboundTimeLeftInCycle();
-        uint64_t buffer = timeLeftInCycle / 600 * GetMaxBlockSerializedSize();
+        uint64_t buffer = timeLeftInCycle / 60 * GetMaxBlockSerializedSize();
         if (buffer >= nMaxOutboundLimit || nMaxOutboundTotalBytesSentInCycle >= nMaxOutboundLimit - buffer)
             return true;
     }

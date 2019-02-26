@@ -497,8 +497,6 @@ SendAssetsEntry *AssetsDialog::addEntry()
     std::vector<std::string> assets;
     if (model)
         GetAllMyAssets(model->getWallet(), assets, 0);
-    else // If the model isn't present. Grab the list of assets that the cache thinks you own
-        GetAllMyAssetsFromCache(assets);
 
     QStringList list;
     bool fIsOwner = false;
@@ -1038,6 +1036,14 @@ void AssetsDialog::focusAssetListBox()
 
         if (entry->getValue().assetName != "")
             entry->setFocus();
+    }
+}
+
+void AssetsDialog::handleFirstSelection()
+{
+    SendAssetsEntry *entry = qobject_cast<SendAssetsEntry*>(ui->entries->itemAt(0)->widget());
+    if (entry) {
+        entry->refreshAssetList();
     }
 }
 /** RPG END */

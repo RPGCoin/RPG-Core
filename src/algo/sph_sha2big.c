@@ -1,3 +1,8 @@
+// Copyright (c)  The Bitcoin Core developers
+// Copyright (c) 2017 The Raven Core developers
+// Copyright (c) 2018 The Rito Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 /* $Id: sha2big.c 216 2010-06-08 09:46:57Z tp $ */
 /*
  * SHA-384 / SHA-512 implementation.
@@ -209,7 +214,7 @@ sph_sha512_init(void *cc)
 #define RFUN   sha3_round
 #define HASH   sha384
 #define BE64   1
-#include "md_helper.c"
+#include "sph_md_helper.c"
 
 /* see sph_sha3.h */
 void

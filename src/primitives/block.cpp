@@ -9,7 +9,7 @@
 #include "algo/hashx21s.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
-#include "algo/common.h"
+#include "crypto/common.h"
 
 uint256 CBlockHeader::GetHash() const
 {

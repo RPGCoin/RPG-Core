@@ -32,7 +32,7 @@ Save MacOSX10.11.sdk.tar.gz to the ~/ folder of your Ubuntu 18 (bionic) build ma
 Static Build process
 ---------------------
 
-Run the automated shell script from ~/ on an Ubuntu18 machine:  
+Run the automat ed shell script from ~/ on an Ubuntu18 machine:  
 [script.sh](/static-builds/script.sh)
 
 

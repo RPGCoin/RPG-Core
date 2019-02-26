@@ -658,8 +658,7 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
     result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
     result.push_back(Pair("transactions", transactions));
     result.push_back(Pair("coinbaseaux", aux));
-    // result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0]->vout[0].nValue));
-    result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0]->vout[0].nValue + (int64_t)pblock->vtx[0]->vout[1].nValue));
+    result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0]->vout[0].nValue));
     result.push_back(Pair("longpollid", chainActive.Tip()->GetBlockHash().GetHex() + i64tostr(nTransactionsUpdatedLast)));
     result.push_back(Pair("target", hashTarget.GetHex()));
     result.push_back(Pair("mintime", (int64_t)pindexPrev->GetMedianTimePast()+1));
@@ -680,11 +679,7 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
     }
     result.push_back(Pair("curtime", pblock->GetBlockTime()));
     result.push_back(Pair("bits", strprintf("%08x", pblock->nBits)));
-    // result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
-
-    const int nHeight = pindexPrev->nHeight;
-
-    result.push_back(Pair("height", (nHeight + 1)));
+    result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
 
     if (!pblocktemplate->vchCoinbaseCommitment.empty() && fSupportsSegwit) {
         result.push_back(Pair("default_witness_commitment", HexStr(pblocktemplate->vchCoinbaseCommitment.begin(), pblocktemplate->vchCoinbaseCommitment.end())));
