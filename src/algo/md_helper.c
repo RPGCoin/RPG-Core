@@ -126,7 +126,7 @@
 #ifndef CLOSE_ONLY
 
 #ifdef SPH_UPTR
-void
+static void
 SPH_XCAT(HASH, _short)(void *cc, const void *data, size_t len)
 #else
 void
@@ -134,16 +134,16 @@ SPH_XCAT(sph_, HASH)(void *cc, const void *data, size_t len)
 #endif
 {
 	SPH_XCAT(sph_, SPH_XCAT(HASH, _context)) *sc;
-	unsigned current;
+	size_t current;
 
-	sc = (SPH_XCAT(sph_, SPH_XCAT(HASH, _context))*) cc;
+	sc = cc;
 #if SPH_64
 	current = (unsigned)sc->count & (SPH_BLEN - 1U);
 #else
 	current = (unsigned)sc->count_low & (SPH_BLEN - 1U);
 #endif
 	while (len > 0) {
-		unsigned clen;
+		size_t clen;
 #if !SPH_64
 		sph_u32 clow, clow2;
 #endif
@@ -186,7 +186,7 @@ SPH_XCAT(sph_, HASH)(void *cc, const void *data, size_t len)
 		SPH_XCAT(HASH, _short)(cc, data, len);
 		return;
 	}
-	sc = (SPH_XCAT(sph_, SPH_XCAT(HASH, _context))*) cc;
+	sc = cc;
 #if SPH_64
 	current = (unsigned)sc->count & (SPH_BLEN - 1U);
 #else
@@ -208,7 +208,7 @@ SPH_XCAT(sph_, HASH)(void *cc, const void *data, size_t len)
 #endif
 	orig_len = len;
 	while (len >= SPH_BLEN) {
-		RFUN((const unsigned char*)data, SPH_VAL);
+		RFUN(data, SPH_VAL);
 		len -= SPH_BLEN;
 		data = (const unsigned char *)data + SPH_BLEN;
 	}
@@ -240,7 +240,7 @@ SPH_XCAT(sph_, HASH)(void *cc, const void *data, size_t len)
  * Perform padding and produce result. The context is NOT reinitialized
  * by this function.
  */
-void
+static void
 SPH_XCAT(HASH, _addbits_and_close)(void *cc,
 	unsigned ub, unsigned n, void *dst, unsigned rnum)
 {
@@ -250,7 +250,7 @@ SPH_XCAT(HASH, _addbits_and_close)(void *cc,
 	sph_u32 low, high;
 #endif
 
-	sc = (SPH_XCAT(sph_, SPH_XCAT(HASH, _context))*) cc;
+	sc = cc;
 
 #if SPH_64
 	current = (unsigned)sc->count & (SPH_BLEN - 1U);
@@ -345,7 +345,7 @@ SPH_XCAT(HASH, _addbits_and_close)(void *cc,
 #endif
 }
 
-void
+static void
 SPH_XCAT(HASH, _close)(void *cc, void *dst, unsigned rnum)
 {
 	SPH_XCAT(HASH, _addbits_and_close)(cc, 0, 0, dst, rnum);
